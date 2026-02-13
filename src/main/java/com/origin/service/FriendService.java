@@ -1,7 +1,6 @@
 package com.origin.service;
 
 import com.origin.dto.FriendDTO;
-import com.origin.entity.Friend;
 
 import java.util.List;
 

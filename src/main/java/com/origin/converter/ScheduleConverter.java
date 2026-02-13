@@ -9,14 +9,15 @@ import java.util.List;
 
 public class ScheduleConverter {
 
-    public  static ScheduleDTO convertTOScheduleDTO(Schedule schedule) {
+    public  static ScheduleDTO convertToScheduleDTO(Schedule schedule) {
 
-        List<String> whos = new ArrayList<>();
-        if(schedule.getWho() != null||!schedule.getWho().isEmpty()) {
+        List<String> whos = null;
+        if(schedule.getWho() != null&&!schedule.getWho().isEmpty()) {
             whos = new ArrayList<>(Arrays.asList(schedule.getWho().split(",")));
         }
 
         return ScheduleDTO.builder().
+                id(schedule.getId()).
                 name(schedule.getName()).
                 location(schedule.getLocation()).
                 who(whos).
@@ -29,14 +30,19 @@ public class ScheduleConverter {
                 build();
     }
 
-    public static Schedule convertFromScheduleDTO(ScheduleDTO scheduleDTO) {
+    public static Schedule convertToSchedule(ScheduleDTO scheduleDTO) {
 
         String who=null;
-        if(scheduleDTO.getWho() != null||!scheduleDTO.getWho().isEmpty()) {
+        if(scheduleDTO.getWho() != null&&!scheduleDTO.getWho().isEmpty()) {
             who = String.join(",", scheduleDTO.getWho());
         }
 
+        if(scheduleDTO.getIs_completed()==null){
+            scheduleDTO.setIs_completed(false);
+        }
+
         Schedule schedule = new Schedule();
+        schedule.setId(scheduleDTO.getId());
         schedule.setName(scheduleDTO.getName());
         schedule.setLocation(scheduleDTO.getLocation());
         schedule.setColor(scheduleDTO.getColor());

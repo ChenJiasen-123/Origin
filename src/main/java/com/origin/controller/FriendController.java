@@ -32,8 +32,9 @@ public class FriendController {
     }
 
     @PutMapping("/friend/{id}")
-    public void updateFriendById(@PathVariable Integer id, @RequestBody FriendDTO friendDTO){
+    public Response<Void> updateFriendById(@PathVariable Integer id, @RequestBody FriendDTO friendDTO){
         friendService.updateFriendById(id,friendDTO);
+        return Response.newSuccess(null);
     }
 
     @GetMapping("/friend")
