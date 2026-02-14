@@ -21,7 +21,7 @@
             <div v-for="hour in hours" :key="hour" class="hour-marker">{{ hour }}:00</div>
 
             <template v-if="activeEvent">
-              <div class="fixed-guide-label" :style="{ top: getPos(activeEvent.start) + 'px', backgroundColor: activeEvent.is_completed? '#666':activeEvent.color }">
+              <div class="fixed-guide-label" :style="{ top: getPos(activeEvent.start) +'px', backgroundColor: activeEvent.is_completed? '#666':activeEvent.color }">
                 {{ activeEvent.start }}
               </div>
               <div class="fixed-guide-label" :style="{ top: getPos(activeEvent.end) + 'px', backgroundColor: activeEvent.is_completed? '#666':activeEvent.color }">
@@ -98,65 +98,126 @@
       <span>Now</span>
     </button>
 
-    <Transition name="pop">
-      <div v-if="detailEvent" class="detail-modal-mask" @click="detailEvent = null">
-        <div class="detail-modal-card" @click.stop>
-          <div class="modal-line" :style="{ backgroundColor: detailEvent.color }"></div>
-          <div class="modal-main">
-          <div style="display: flex; justify-content: flex-end; margin-top: -10px;">
-            <label style="cursor: pointer;">
-              <input
-                type="checkbox"
-                v-model="detailEvent.is_completed"
-                @change="updateScheduleStatus(detailEvent)"
-                style="width: 24px; height: 24px; cursor: pointer; accent-color: #409EFF;"
-              >
-            </label>
+<Transition name="pop">
+  <div v-if="detailEvent" class="detail-modal-mask" @click="closeModal">
+    <div class="detail-modal-card" @click.stop>
+      <div class="modal-line" :style="{ backgroundColor: detailEvent.color }"></div>
+      <div class="modal-main">
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: -10px; margin-bottom: 10px;">
+          <div @click="toggleEdit" style="cursor: pointer; display: flex; align-items: center;" title="编辑">
+            <svg v-if="!isEditing" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span v-else style="color: #409EFF; font-weight: bold; font-size: 14px;">Done</span>
           </div>
-            <h3 class="modal-title" :style="detailEvent.is_completed ? 'color: #999; text-decoration: line-through;' : ''">
-                      {{ detailEvent.title }}
-                    </h3>
-            <div class="modal-info-row">
-              <span class="info-label">Time</span>
-              <span class="info-value" :style="detailEvent.is_completed ? 'color: #999' : ''">
-              {{ detailEvent.date }} {{ detailEvent.start }} - {{ detailEvent.end }}</span>
-            </div>
-            <div class="modal-info-row" v-if="detailEvent.location">
-              <span class="info-label">Location</span>
-              <span class="info-value" :style="detailEvent.is_completed ? 'color: #999' : ''">
-              {{ detailEvent.location }}</span>
-            </div>
-            <div class="modal-info-row" v-if="detailEvent.who && detailEvent.who.length">
-              <span class="info-label">Participants</span>
-              <div class="modal-tags">
-                <span v-for="name in detailEvent.who" :key="name" class="m-tag"
-                  :style="{
-                    color: detailEvent.is_completed ? '#aaa' : detailEvent.color,
-                    backgroundColor: detailEvent.is_completed ? '#f0f0f0' : detailEvent.color + '20',
-                    opacity: detailEvent.is_completed ? 0.7 : 1,
-                  }">
-                  {{ name }}
-                </span>
-              </div>
-            </div>
-            <div class="modal-info-row" style="margin-top: 15px;">
-              <span class="info-label">Note</span>
-              <div :style="{
-                     background: '#f8f8f8',
-                     padding: '10px',
-                     borderRadius: '8px',
-                     fontSize: '13px',
-                     marginTop: '4px',
-                     color: detailEvent.is_completed ? '#bbb' : '#666',
-                     transition: 'all 0.3s ease'
-                   }">
-                {{ detailEvent.note || 'No notes added' }}
-              </div>
-            </div>
+
+          <label style="cursor: pointer; display: flex; align-items: center;">
+            <input
+              type="checkbox"
+              v-model="detailEvent.is_completed"
+              @change="updateScheduleStatus(detailEvent)"
+              style="width: 24px; height: 24px; cursor: pointer; accent-color: #409EFF;"
+            >
+          </label>
+        </div>
+
+        <div class="modal-info-row">
+          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" />
+          <h3 v-else class="modal-title" :style="detailEvent.is_completed ? 'color: #999; text-decoration: line-through;' : ''">
+            {{ detailEvent.title }}
+          </h3>
+        </div>
+
+<div class="modal-info-row">
+  <div v-if="isEditing" class="edit-form-container" style="margin-top: 5px;">
+    <el-form :model="detailEvent" label-position="top">
+
+      <el-row>
+        <el-col :span="24">
+          <el-form-item label="Date">
+            <el-date-picker
+              v-model="detailEvent.date"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="Select Date"
+              :clearable="false"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="10" style="margin-top: 5px;">
+        <el-col :span="11">
+          <el-form-item label="Start Time">
+            <el-time-picker
+              v-model="detailEvent.start"
+              format="HH:mm"
+              value-format="HH:mm"
+              :clearable="false"
+              placeholder="开始时间"
+              style="width: 100%"
+              @change="validateTime"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="2" style="display: flex; justify-content: center; align-items: flex-end; height: 50px; color: #999; padding-bottom: 10px;">
+          <span>-</span>
+        </el-col>
+        <el-col :span="11">
+          <el-form-item label="End Time">
+            <el-time-picker
+              v-model="detailEvent.end"
+              format="HH:mm"
+              value-format="HH:mm"
+              :clearable="false"
+              placeholder="结束时间"
+              style="width: 100%"
+              @change="validateTime"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+    </el-form>
+  </div>
+
+  <div v-else class="display-schedule-box" :style="detailEvent.is_completed ? 'opacity: 0.6' : ''">
+    <span class="info-label">Time</span>
+    <div class="display-time" :style="{ marginTop: '4px', fontSize: '14px', color: '#444', fontWeight: '500' }">
+      {{ detailEvent.start }} <span style="color: #ccc; margin: 0 4px;"> - </span> {{ detailEvent.end }}
+    </div>
+  </div>
+</div>
+
+        <div class="modal-info-row">
+          <span class="info-label">Location</span>
+          <input v-if="isEditing" v-model="detailEvent.location" class="edit-input" />
+          <span v-else class="info-value" :style="detailEvent.is_completed ? 'color: #999' : ''">
+            {{ detailEvent.location || 'None' }}
+          </span>
+        </div>
+
+        <div class="modal-info-row" style="margin-top: 15px;">
+          <span class="info-label">Note</span>
+          <textarea v-if="isEditing" v-model="detailEvent.note" class="edit-textarea"></textarea>
+          <div v-else :style="{
+                 background: '#f8f8f8',
+                 padding: '10px',
+                 borderRadius: '8px',
+                 fontSize: '13px',
+                 marginTop: '4px',
+                 color: detailEvent.is_completed ? '#bbb' : '#666',
+                 transition: 'all 0.3s ease'
+               }">
+            {{ detailEvent.note || 'No notes added' }}
           </div>
         </div>
       </div>
-    </Transition>
+    </div>
+  </div>
+</Transition>
   </div>
 </template>
 
@@ -165,7 +226,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
 
 // --- 基础配置 ---
-const hours = Array.from({ length: 16 }, (_, i) => i + 8)
+const hours = Array.from({ length: 24 }, (_, i) => i + 0)
 const GUTTER_WIDTH = 38
 
 // --- 响应式数据 ---
@@ -232,7 +293,7 @@ const getEventStyle = (item) => {
   const [eH, eM] = endTime.split(':').map(Number)
 
   const rowHeight = 60
-  const top = (sH - 8 + sM / 60) * rowHeight
+  const top = (sH + sM / 60) * rowHeight + 10
   const duration = (eH + eM / 60) - (sH + sM / 60)
   const height = duration * rowHeight
 
@@ -250,7 +311,7 @@ const getPos = (timeStr) => {
   if (!timeStr) return 0
   const time = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr
   const [h, m] = time.split(':').map(Number)
-  return ((h - 8) * 60) + m
+  return ((h) * 60) + m + 10
 }
 
 // --- 交互事件 ---
@@ -313,6 +374,37 @@ const fetchSchedules = async () => {
   }
 }
 
+// 时间校验逻辑
+const validateTime = () => {
+  if (!detailEvent.value.start || !detailEvent.value.end) return
+
+  // 将 "HH:mm" 转换为分钟总数进行比较
+  const timeToMinutes = (t) => {
+    const [h, m] = t.split(':').map(Number)
+    return h * 60 + m
+  }
+
+  const startTotal = timeToMinutes(detailEvent.value.start)
+  const endTotal = timeToMinutes(detailEvent.value.end)
+
+  // 如果结束时间早于或等于开始时间
+  if (endTotal <= startTotal) {
+    console.warn('结束时间必须晚于开始时间')
+
+    // 自动处理：将结束时间设为开始时间 + 1小时 (如果超过24点则设为23:59)
+    let newEndMinutes = startTotal + 60
+    if (newEndMinutes >= 1440) newEndMinutes = 1439
+
+    const h = String(Math.floor(newEndMinutes / 60)).padStart(2, '0')
+    const m = String(newEndMinutes % 60).padStart(2, '0')
+
+    detailEvent.value.end = `${h}:${m}`
+
+    // 可选：使用 Element Plus 的消息提示
+    // ElMessage.warning('结束时间已自动调整为开始时间之后')
+  }
+}
+
 const updateScheduleStatus = async (item) => {
   const originalStatus = !item.is_completed;
 
@@ -339,6 +431,26 @@ const updateScheduleStatus = async (item) => {
     item.is_completed = originalStatus; // 回滚
     alert("无法保存状态，请检查网络或后端服务");
   }
+}
+
+const isEditing = ref(false)
+
+// 切换编辑模式
+const toggleEdit = () => {
+  if (isEditing.value) {
+    // 如果是从编辑模式退出，则保存
+    updateScheduleStatus(detailEvent.value)
+  }
+  isEditing.value = !isEditing.value
+}
+
+// 修改关闭弹窗的方法，确保重置编辑状态
+const closeModal = () => {
+  if (isEditing.value) {
+    updateScheduleStatus(detailEvent.value)
+  }
+  detailEvent.value = null
+  isEditing.value = false
 }
 
 onMounted(() => {
@@ -456,7 +568,6 @@ onMounted(() => {
   box-sizing: border-box;
   cursor: pointer;
   padding: 1px;
-  /* 禁止双击选中文字 */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
@@ -545,7 +656,7 @@ onMounted(() => {
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(5px);
-  z-index: 9999;
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -585,6 +696,90 @@ onMounted(() => {
 @keyframes modalShow {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
+}
+
+.edit-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: #fafafa;
+}
+.edit-input:focus {
+  border-color: #409EFF;
+  background: #fff;
+}
+.title-input {
+  font-size: 18px;
+  font-weight: bold;
+}
+.edit-input-sm {
+  border: 1px solid #eee;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.edit-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #dcdfe6; /* 匹配 Element 的默认边框色 */
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 4px;
+  resize: vertical; /* 允许垂直拉伸 */
+  background: #fafafa;
+  transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  outline: none; /* 禁用原生蓝色轮廓 */
+  box-sizing: border-box;
+}
+
+/* 关键修改：选中（焦点）时的样式 */
+.edit-textarea:focus {
+  background: #fff;
+  border-color: #409EFF; /* Primary 蓝色 */
+  box-shadow: 0 0 0 1px #409EFF; /* 模拟 Element 输入框的焦点阴影感 */
+}
+
+/* 鼠标悬浮时的微调 */
+.edit-textarea:hover {
+  border-color: #c0c4cc;
+}
+/* 深度定制 Element Plus 样式以匹配蓝色主调 */
+:deep(.el-form-item__label) {
+  font-size: 13px !important;
+  color: #606266 !important; /* 标准灰色 */
+  font-weight: bold !important;
+  margin-bottom: 4px !important;
+  padding: 0 !important;
+}
+
+/* 蓝色主色调覆盖 */
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #409EFF inset !important; /* 蓝色焦点边框 */
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 8px !important; /* 紧凑间距 */
+}
+
+/* 让日期选择器图标也是蓝色 */
+:deep(.el-input__icon) {
+  color: #409EFF;
+}
+
+/* 展示模式样式 */
+.display-time {
+  font-variant-numeric: tabular-nums; /* 确保时间数字等宽 */
+  display: flex;
+  align-items: center;
+}
+
+:deep(.el-date-editor.el-input__wrapper) {
+  width: 100% !important;
+  box-sizing: border-box;
 }
 .pop-enter-active, .pop-leave-active { transition: all 0.3s ease; }
 .pop-enter-from, .pop-leave-to { opacity: 0; transform: scale(0.9); }
