@@ -48,7 +48,7 @@ const goToEdit = () => {
 const fetchDetail = async () => {
   loading.value = true
   try {
-    const response = await axios.get(`http://192.168.124.8:8080/friend/${route.params.id}`)
+    const response = await axios.get(`http://192.168.124.9:8080/friend/${route.params.id}`)
     friend.value = response.data.data
   } catch (error) {
     console.error("加载详情失败", error)

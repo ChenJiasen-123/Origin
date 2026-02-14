@@ -16,7 +16,7 @@ public class AddScheduleTest {
     @Test
     public void addSchedule() {
         List<ScheduleDTO> lists = List.of(
-                ScheduleDTO.builder().name("与东晓老师会面").location("东晓老师家").start_time(LocalDateTime.parse("2026-02-13T15:00")).end_time(LocalDateTime.parse("2026-02-13T17:30")).build()
+                ScheduleDTO.builder().name("Java").location("三教502").start_time(LocalDateTime.parse("2026-02-14T16:00")).end_time(LocalDateTime.parse("2026-02-14T17:30")).color("#555").build()
         );
         lists.forEach(scheduleService::addNewSchedule);
     }

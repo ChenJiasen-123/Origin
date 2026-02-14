@@ -286,7 +286,7 @@ const handleItemClick = (item) => {
 // --- API 请求 ---
 const fetchSchedules = async () => {
   try {
-    const res = await axios.get('http://192.168.124.8:8080/schedule')
+    const res = await axios.get('http://192.168.124.9:8080/schedule')
     if (res.data?.success) {
       const remoteData = res.data.data || []
       schedules.value = remoteData.map((item, index) => {
@@ -317,12 +317,9 @@ const updateScheduleStatus = async (item) => {
   const originalStatus = !item.is_completed;
 
   try {
-    // 修改点 1: 后端 Controller 使用的是 @PutMapping
-    // 修改点 2: URL 必须带上 id，匹配后端 /schedule/{id}
-    const res = await axios.put(`http://192.168.124.8:8080/schedule/${item.id}`, {
-      // 构造符合 ScheduleDTO 结构的对象
+    const res = await axios.put(`http://192.168.124.9:8080/schedule/${item.id}`, {
       id: item.id,
-      name: item.title,      // 注意：前端叫 title，后端 DTO 叫 name
+      name: item.title,
       note: item.note,
       start_time: item.date + " " + item.start + ":00", // 拼回 yyyy-MM-dd HH:mm:ss
       end_time: item.date + " " + item.end + ":00",

@@ -77,7 +77,7 @@ const onInputChange = () => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await axios.get('http://192.168.124.8:8080/friend', {
+    const res = await axios.get('http://192.168.124.9:8080/friend', {
       params: { keyword: keyword.value }
     })
     friends.value = res.data.data
@@ -122,7 +122,7 @@ const handleBatchDelete = () => {
 const executeDelete = async (ids) => {
   try {
     // 假设后端 DELETE 接收 id 数组
-    await axios.delete('http://192.168.124.8:8080/friend', { data: ids })
+    await axios.delete('http://192.168.124.9:8080/friend', { data: ids })
     ElMessage.success("Delete Successfully")
     fetchData()
   } catch (error) {
