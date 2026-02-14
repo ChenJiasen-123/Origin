@@ -40,14 +40,18 @@ public class ScheduleConverter {
         if(scheduleDTO.getIs_completed()==null){
             scheduleDTO.setIs_completed(false);
         }
-
         Schedule schedule = new Schedule();
+        if(scheduleDTO.getStart_time().isAfter(scheduleDTO.getEnd_time())){
+            schedule.setStart_time(scheduleDTO.getEnd_time());
+            schedule.setEnd_time(scheduleDTO.getStart_time());
+        }else {
+            schedule.setStart_time(scheduleDTO.getStart_time());
+            schedule.setEnd_time(scheduleDTO.getEnd_time());
+        }
         schedule.setId(scheduleDTO.getId());
         schedule.setName(scheduleDTO.getName());
         schedule.setLocation(scheduleDTO.getLocation());
         schedule.setColor(scheduleDTO.getColor());
-        schedule.setStart_time(scheduleDTO.getStart_time());
-        schedule.setEnd_time(scheduleDTO.getEnd_time());
         schedule.setReminder_time(scheduleDTO.getReminder_time());
         schedule.setIs_completed(scheduleDTO.getIs_completed());
         schedule.setNote(scheduleDTO.getNote());
