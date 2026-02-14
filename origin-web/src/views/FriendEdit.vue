@@ -72,7 +72,7 @@ const fetchDetail = async () => {
 
   loading.value = true
   try {
-    const res = await axios.get(`http://192.168.124.8:8080/friend/${route.params.id}`)
+    const res = await axios.get(`http://192.168.124.9:8080/friend/${route.params.id}`)
     friend.value = res.data.data
     if(!friend.value.tags) friend.value.tags = []
   } finally {
@@ -82,7 +82,7 @@ const fetchDetail = async () => {
 
 const handleSave = async () => {
   submitting.value = true
-  const baseUrl = 'http://192.168.124.8:8080/friend'
+  const baseUrl = 'http://192.168.124.9:8080/friend'
   try {
     if (isEdit.value) {
       // 编辑：PUT

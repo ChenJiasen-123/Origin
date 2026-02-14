@@ -283,10 +283,60 @@ const handleItemClick = (item) => {
   activeEvent.value = activeEvent.value?.id === item.id ? null : item
 }
 
+const pressTimer = ref(null);
+const LONG_PRESS_DURATION = 600; // 长按 600ms 触发
+
+// 处理开始点击/触摸
+const startPress = (callback, event) => {
+  // 排除右键点击
+  if (event.type === 'mousedown' && event.button !== 0) return;
+
+  pressTimer.value = setTimeout(() => {
+    callback();
+    pressTimer.value = null;
+  }, LONG_PRESS_DURATION);
+};
+
+// 处理取消点击/触摸（如果用户提前松开或移动，则取消计时）
+const cancelPress = () => {
+  if (pressTimer.value) {
+    clearTimeout(pressTimer.value);
+    pressTimer.value = null;
+  }
+};
+
+// --- 新增功能函数 ---
+
+// 1. 长按空白处：生成新卡片
+const handleLongPressBlank = (event) => {
+  // 根据点击位置计算时间（逻辑参考 getPos 的逆向计算）
+  const rect = event.currentTarget.getBoundingClientRect();
+  const offsetY = event.clientY - rect.top;
+  const hour = Math.floor(offsetY / 60) + 8;
+
+  const newEvent = {
+    id: `temp-${Date.now()}`,
+    title: 'New Event',
+    start: `${hour}:00`,
+    end: `${hour + 1}:00`,
+    date: startOfWeek.value.toISOString().split('T')[0], // 默认本周一，可根据点击列精细化
+    color: '#409EFF',
+    is_completed: false,
+    note: ''
+  };
+
+  detailEvent.value = newEvent; // 进入编辑模式
+};
+
+// 2. 长按已有卡片：进入编辑模式
+const handleLongPressItem = (item) => {
+  detailEvent.value = { ...item }; // 打开弹窗
+};
+
 // --- API 请求 ---
 const fetchSchedules = async () => {
   try {
-    const res = await axios.get('http://192.168.124.8:8080/schedule')
+    const res = await axios.get('http://192.168.124.9:8080/schedule')
     if (res.data?.success) {
       const remoteData = res.data.data || []
       schedules.value = remoteData.map((item, index) => {
@@ -317,12 +367,9 @@ const updateScheduleStatus = async (item) => {
   const originalStatus = !item.is_completed;
 
   try {
-    // 修改点 1: 后端 Controller 使用的是 @PutMapping
-    // 修改点 2: URL 必须带上 id，匹配后端 /schedule/{id}
-    const res = await axios.put(`http://192.168.124.8:8080/schedule/${item.id}`, {
-      // 构造符合 ScheduleDTO 结构的对象
+    const res = await axios.put(`http://192.168.124.9:8080/schedule/${item.id}`, {
       id: item.id,
-      name: item.title,      // 注意：前端叫 title，后端 DTO 叫 name
+      name: item.title,
       note: item.note,
       start_time: item.date + " " + item.start + ":00", // 拼回 yyyy-MM-dd HH:mm:ss
       end_time: item.date + " " + item.end + ":00",

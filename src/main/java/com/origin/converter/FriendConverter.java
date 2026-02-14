@@ -34,6 +34,7 @@ public class FriendConverter {
         }
 
         return FriendDTO.builder().
+                id(friend.getId()).
                 name(friend.getName()).
                 number(friend.getNumber()).
                 note(friend.getNote()).
@@ -72,6 +73,7 @@ public class FriendConverter {
         Integer age;
 
         Friend friend = new Friend();
+        friend.setId(friendDTO.getId());
         friend.setName(friendDTO.getName());
         friend.setNumber(friendDTO.getNumber());
         friend.setNote(friendDTO.getNote());
