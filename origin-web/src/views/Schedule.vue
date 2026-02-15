@@ -770,11 +770,6 @@ const getContrastColor = (hexcolor) => {
   display: flex;
   flex-direction: column;
 }
-@media (max-width: 768px) {
-  .schedule-full-width {
-    width: calc(38px + (100vw - 38px) / 3 * 7);
-  }
-}
 
 /* 4. 时间轴侧边栏 */
 .time-gutter-sticky {
@@ -956,6 +951,9 @@ const getContrastColor = (hexcolor) => {
   .floating-btn {
     width: 48px;
     height: 48px;
+  }
+  .schedule-full-width {
+    width: calc((100vw - 62px) / 3 * 7);
   }
 }
 
