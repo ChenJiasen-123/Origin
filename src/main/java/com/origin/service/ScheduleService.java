@@ -11,7 +11,7 @@ public interface ScheduleService {
 
     void addNewSchedule(ScheduleDTO scheduleDTO);
 
-    void deleteAllSchedulesByIds(List<Integer> ids);
+    void deleteScheduleById(Integer id);
 
     void updateScheduleById(Integer id, ScheduleDTO scheduleDTO);
 

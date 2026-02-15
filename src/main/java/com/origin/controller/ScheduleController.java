@@ -3,7 +3,6 @@ package com.origin.controller;
 import com.origin.Response;
 import com.origin.dto.ScheduleDTO;
 import com.origin.service.ScheduleService;
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +19,9 @@ public class ScheduleController {
         return Response.newSuccess(scheduleService.getScheduleById(id));
     }
 
-    @DeleteMapping("/schedule")
-    public Response<Void> deleteAllSchedulesById(@RequestBody List<Integer> ids){
-        scheduleService.deleteAllSchedulesByIds(ids);
+    @DeleteMapping("/schedule/{id}")
+    public Response<Void> deleteAllSchedulesById(@PathVariable Integer id){
+        scheduleService.deleteScheduleById(id);
         return Response.newSuccess(null);
     }
 
