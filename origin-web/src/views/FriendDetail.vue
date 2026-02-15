@@ -34,7 +34,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+// 【修改 1】引入封装好的统一 request 实例
+import request from '../utils/request'
 
 const route = useRoute()
 const router = useRouter()
@@ -48,7 +49,10 @@ const goToEdit = () => {
 const fetchDetail = async () => {
   loading.value = true
   try {
-    const response = await axios.get(`http://192.168.124.9:8080/friend/${route.params.id}`)
+    // 【修改 2】使用 request.get，并删除 http://IP:8080
+    // 基础路径 baseURL: '/origin' 会自动补全在前面
+    // 实际请求 URL: http://电脑IP:5173/origin/friend/xxx
+    const response = await request.get(`/friend/${route.params.id}`)
     friend.value = response.data.data
   } catch (error) {
     console.error("加载详情失败", error)

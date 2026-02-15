@@ -54,7 +54,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import request from '../utils/request'
 import { Search, Plus, Refresh, Setting } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
@@ -77,7 +77,9 @@ const onInputChange = () => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await axios.get('http://192.168.124.9:8080/friend', {
+// 实际发出：/origin/friend
+    // Vite 转发给后端：http://localhost:8080/friend
+    const res = await request.get('/friend', {
       params: { keyword: keyword.value }
     })
     friends.value = res.data.data
@@ -121,8 +123,8 @@ const handleBatchDelete = () => {
 // 调用删除接口
 const executeDelete = async (ids) => {
   try {
-    // 假设后端 DELETE 接收 id 数组
-    await axios.delete('http://192.168.124.9:8080/friend', { data: ids })
+// 实际发出：/origin/friend
+    await request.delete('/friend', { data: ids })
     ElMessage.success("Delete Successfully")
     fetchData()
   } catch (error) {
