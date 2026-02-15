@@ -320,7 +320,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import axios from 'axios'
+import request from '../utils/request'
 
 // --- 基础配置 ---
 const hours = Array.from({ length: 24 }, (_, i) => i + 0)
@@ -453,7 +453,7 @@ const handleItemDblClick = (item) => {
 // --- API 请求 ---
 const fetchSchedules = async () => {
   try {
-    const res = await axios.get('http://192.168.124.9:8080/schedule')
+const res = await request.get('/schedule')
     if (res.data?.success) {
       const remoteData = res.data.data || []
       schedules.value = remoteData.map((item, index) => {
@@ -529,10 +529,10 @@ const saveSchedule = async (item) => {
 
   try {
     const isNew = item.id === null;
-    const url = isNew ? 'http://192.168.124.9:8080/schedule' : `http://192.168.124.9:8080/schedule/${item.id}`;
+    const url = isNew ? '/schedule' : `/schedule/${item.id}`;
     const method = isNew ? 'post' : 'put';
 
-    const res = await axios[method](url, {
+    const res = await request[method](url, {
       ...item,
       name: item.title,
       start_time: `${item.date} ${item.start}:00`,
@@ -615,7 +615,7 @@ const handleDelete = async (item) => {
   }
 
   try {
-    const res = await axios.delete(`http://192.168.124.9:8080/schedule/${item.id}`);
+const res = await request.delete(`/schedule/${item.id}`);
 
     if (res.data?.success) {
       // 3. 删除成功后：刷新主列表并关闭弹窗
@@ -648,9 +648,9 @@ const colorPool = ref([]);
 
 const fetchColorPool = async () => {
   try {
-    // 这里的 URL 换成你刚才写好的 Controller 路径
-    const res = await axios.get('http://192.168.124.9:8080/api/colorList');
-    colorPool.value = res.data;
+// 路径直接写接口名，baseURL 会自动补全为 /origin/api/colorList
+  const res = await request.get('/api/colorList');
+  colorPool.value = res.data;
   } catch (err) {
     console.error("Fetch colors failed:", err);
     // 如果后端没好，可以先用一组默认值兜底

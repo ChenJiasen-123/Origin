@@ -57,43 +57,53 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import request from '../utils/request'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
-const isEdit = computed(() => !!route.params.id) // 是否为编辑模式
-const friend = ref({ })
+const isEdit = computed(() => !!route.params.id)
+const friend = ref({
+  tags: [] // 初始化 tags 防止渲染报错
+})
 const loading = ref(false)
 const submitting = ref(false)
 
+// 获取详情
 const fetchDetail = async () => {
-  if (!isEdit.value) return // 新增模式无需获取详情
+  if (!isEdit.value) return
 
   loading.value = true
   try {
-    const res = await axios.get(`http://192.168.124.9:8080/friend/${route.params.id}`)
+    // 【修改2】使用 request 实例。baseURL 已配置为 /origin
+    // 实际请求：/origin/friend/1
+    const res = await request.get(`/friend/${route.params.id}`)
     friend.value = res.data.data
     if(!friend.value.tags) friend.value.tags = []
+  } catch (e) {
+    ElMessage.error("Failed to load details")
   } finally {
     loading.value = false
   }
 }
 
+// 处理保存（新增或编辑）
 const handleSave = async () => {
   submitting.value = true
-  const baseUrl = 'http://192.168.124.9:8080/friend'
+  // 【修改3】统一使用相对路径，baseURL 会自动处理前缀
+  const path = '/friend'
+
   try {
     if (isEdit.value) {
-      // 编辑：PUT
-      await axios.put(`${baseUrl}/${route.params.id}`, friend.value)
+      // 编辑：PUT /origin/friend/id
+      await request.put(`${path}/${route.params.id}`, friend.value)
       ElMessage.success("Edit Successfully")
       router.back()
     } else {
-      // 新增：POST
-      await axios.post(baseUrl, friend.value)
+      // 新增：POST /origin/friend
+      await request.post(path, friend.value)
       ElMessage.success("Add Successfully")
-      router.replace('/friend') // 使用 replace 替换历史记录，防止返回重复提交
+      router.replace('/friend')
     }
   } catch (e) {
     ElMessage.error("Operation failed")
