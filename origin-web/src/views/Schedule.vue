@@ -51,9 +51,8 @@
               :key="item.id"
               class="event-block"
               :class="{ 'is-active': activeEvent?.id === item.id }"
-              :style="getEventStyle(item)"
-              @click="handleItemClick(item)"
-              @dblclick="detailEvent = item"
+              :style="getEventStyle(item)"  @click="handleItemClick(item)"
+              @dblclick="handleItemDblClick(item)"
             >
               <div class="event-inner"
                 :style="{
@@ -94,17 +93,28 @@
       </div>
     </div>
 
-    <button class="floating-today-btn" @click="goToToday" title="回到今天">
-      <span>Now</span>
-    </button>
+    <div class="floating-action-group">
+      <button class="floating-btn add-btn" @click="createNewSchedule" title="添加日程">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <button class="floating-btn today-btn" @click="goToToday" title="回到今天">
+        <span>Now</span>
+      </button>
+    </div>
 
 <Transition name="pop">
   <div v-if="detailEvent" class="detail-modal-mask" @click="closeModal">
     <div class="detail-modal-card" @click.stop>
       <div class="modal-line" :style="{ backgroundColor: detailEvent.color }"></div>
+
       <div class="modal-main">
-        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: -10px; margin-bottom: 10px;">
-          <div @click="toggleEdit" style="cursor: pointer; display: flex; align-items: center;" title="编辑">
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: -10px; margin-bottom: 5px;">
+
+          <div @click="toggleEdit" style="cursor: pointer; display: flex; align-items: center;" title="编辑/保存">
             <svg v-if="!isEditing" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -112,104 +122,191 @@
             <span v-else style="color: #409EFF; font-weight: bold; font-size: 14px;">Done</span>
           </div>
 
-          <label style="cursor: pointer; display: flex; align-items: center;">
+          <div v-if="isEditing" @click="handleDelete(detailEvent)" style="cursor: pointer; display: flex; align-items: center;" title="删除日程">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#F56C6C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </div>
+
+          <label v-else style="cursor: pointer; display: flex; align-items: center;">
             <input
               type="checkbox"
               v-model="detailEvent.is_completed"
-              @change="updateScheduleStatus(detailEvent)"
+              @change="saveSchedule(detailEvent)"
               style="width: 24px; height: 24px; cursor: pointer; accent-color: #409EFF;"
             >
           </label>
         </div>
 
         <div class="modal-info-row">
-          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" />
+          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" placeholder="Event Title" />
           <h3 v-else class="modal-title" :style="detailEvent.is_completed ? 'color: #999; text-decoration: line-through;' : ''">
-            {{ detailEvent.title }}
+            {{ detailEvent.title || 'Untitled Event' }}
           </h3>
         </div>
 
-<div class="modal-info-row">
-  <div v-if="isEditing" class="edit-form-container" style="margin-top: 5px;">
-    <el-form :model="detailEvent" label-position="top">
-
-      <el-row>
-        <el-col :span="24">
-          <el-form-item label="Date">
-            <el-date-picker
-              v-model="detailEvent.date"
-              type="date"
-              value-format="YYYY-MM-DD"
-              placeholder="Select Date"
-              :clearable="false"
-              style="width: 100%"
-            />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <el-row :gutter="10" style="margin-top: 5px;">
-        <el-col :span="11">
-          <el-form-item label="Start Time">
-            <el-time-picker
-              v-model="detailEvent.start"
-              format="HH:mm"
-              value-format="HH:mm"
-              :clearable="false"
-              placeholder="开始时间"
-              style="width: 100%"
-              @change="validateTime"
-            />
-          </el-form-item>
-        </el-col>
-        <el-col :span="2" style="display: flex; justify-content: center; align-items: flex-end; height: 50px; color: #999; padding-bottom: 10px;">
-          <span>-</span>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="End Time">
-            <el-time-picker
-              v-model="detailEvent.end"
-              format="HH:mm"
-              value-format="HH:mm"
-              :clearable="false"
-              placeholder="结束时间"
-              style="width: 100%"
-              @change="validateTime"
-            />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-    </el-form>
-  </div>
-
-  <div v-else class="display-schedule-box" :style="detailEvent.is_completed ? 'opacity: 0.6' : ''">
-    <span class="info-label">Time</span>
-    <div class="display-time" :style="{ marginTop: '4px', fontSize: '14px', color: '#444', fontWeight: '500' }">
-      {{ detailEvent.start }} <span style="color: #ccc; margin: 0 4px;"> - </span> {{ detailEvent.end }}
-    </div>
-  </div>
-</div>
+        <div class="modal-info-row">
+          <div v-if="isEditing" class="edit-form-container" style="margin-top: 5px;">
+            <el-form :model="detailEvent" label-position="top">
+              <el-row>
+                <el-col :span="24">
+                  <el-form-item label="Date">
+                    <el-date-picker
+                      v-model="detailEvent.date"
+                      type="date"
+                      value-format="YYYY-MM-DD"
+                      :clearable="false"
+                      style="width: 100%"
+                    />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="10">
+                <el-col :span="11">
+                  <el-form-item label="Start">
+                    <el-time-picker
+                      v-model="detailEvent.start"
+                      format="HH:mm"
+                      value-format="HH:mm"
+                      :clearable="false"
+                      style="width: 100%"
+                      @change="validateTime"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="2" style="display: flex; justify-content: center; align-items: flex-end; height: 50px; color: #999; padding-bottom: 10px;">
+                  <span>-</span>
+                </el-col>
+                <el-col :span="11">
+                  <el-form-item label="End">
+                    <el-time-picker
+                      v-model="detailEvent.end"
+                      format="HH:mm"
+                      value-format="HH:mm"
+                      :clearable="false"
+                      style="width: 100%"
+                      @change="validateTime"
+                    />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-form>
+          </div>
+          <div v-else class="display-schedule-box" :style="detailEvent.is_completed ? 'opacity: 0.6' : ''">
+            <span class="info-label">Time</span>
+            <div class="display-time" style="margin-top: 4px; font-size: 14px; color: #444; font-weight: 500;">
+              {{ detailEvent.start }} <span style="color: #ccc; margin: 0 4px;"> - </span> {{ detailEvent.end }}
+            </div>
+          </div>
+        </div>
 
         <div class="modal-info-row">
           <span class="info-label">Location</span>
-          <input v-if="isEditing" v-model="detailEvent.location" class="edit-input" />
+          <input v-if="isEditing" v-model="detailEvent.location" class="edit-input" placeholder="Add location" />
           <span v-else class="info-value" :style="detailEvent.is_completed ? 'color: #999' : ''">
-            {{ detailEvent.location || 'None' }}
+            {{ detailEvent.location || 'No location' }}
           </span>
         </div>
 
+        <div class="modal-info-row">
+          <span class="info-label">Who</span>
+          <div v-if="isEditing" class="edit-tags-container">
+            <div class="modal-tags">
+              <el-tag
+                v-for="(name, index) in detailEvent.who"
+                :key="index"
+                closable
+                @close="removeWho(index)"
+                class="custom-blue-tag"
+              >
+                {{ name }}
+              </el-tag>
+              <el-input
+                v-if="inputVisible"
+                ref="InputRef"
+                v-model="inputValue"
+                class="new-tag-input"
+                size="small"
+                @keyup.enter="handleInputConfirm"
+                @blur="handleInputConfirm"
+              />
+              <el-button v-else class="button-new-tag" size="small" @click="showInput">+ Tag</el-button>
+            </div>
+          </div>
+          <div v-else class="modal-tags">
+            <span v-for="(name, index) in detailEvent.who" :key="index"
+              class="name-tag"
+              :style="{
+                backgroundColor: detailEvent.is_completed ? '#e0e0e0' : detailEvent.color + '25',
+                color: detailEvent.is_completed ? '#999': detailEvent.color,
+                fontSize: '12px', padding: '3px 10px'
+              }">
+              {{ name }}
+            </span>
+            <span v-if="!detailEvent.who || detailEvent.who.length === 0" class="info-value" style="color:#ccc">No one</span>
+          </div>
+        </div>
+
+        <div class="modal-info-row" v-if="isEditing">
+          <span class="info-label">Card Color</span>
+          <div style="position: relative; margin-top: 8px;">
+            <div
+              @click="showColorPicker = !showColorPicker"
+              class="current-color-preview square-preview"
+              :style="{ backgroundColor: detailEvent.color }"
+            >
+              <span :style="{ color: getContrastColor(detailEvent.color) }">Change Color</span>
+            </div>
+
+            <Transition name="fade">
+              <div v-if="showColorPicker" class="color-picker-popover">
+                <div class="color-grid">
+                  <div
+                    v-for="colorCode in colorPool"
+                    :key="colorCode"
+                    class="color-block"
+                    :style="{ backgroundColor: colorCode }"
+                    @click="selectColor(colorCode)"
+                  >
+                    <div v-if="detailEvent.color === colorCode" class="check-white"></div>
+                  </div>
+                </div>
+                <div class="popover-arrow"></div>
+              </div>
+            </Transition>
+          </div>
+        </div>
+
+         <div class="modal-info-row">
+                  <span class="info-label">Reminder</span>
+                  <div v-if="isEditing">
+                    <el-select v-model="detailEvent.reminder_offset" placeholder="Select" style="width: 100%" class="blue-select">
+                      <el-option label="No reminder" :value="null" />
+                      <el-option label="At time of event" :value="0" />
+                      <el-option label="5 minutes before" :value="5" />
+                      <el-option label="15 minutes before" :value="15" />
+                      <el-option label="1 hour before" :value="60" />
+                      <el-option label="1 day before" :value="1440" />
+                    </el-select>
+                  </div>
+                  <span v-else class="info-value">
+                    {{ detailEvent.reminder_time ? detailEvent.reminder_time.replace('T', ' ').substring(0, 16) : 'No reminder' }}
+                  </span>
+                </div>
+
         <div class="modal-info-row" style="margin-top: 15px;">
           <span class="info-label">Note</span>
-          <textarea v-if="isEditing" v-model="detailEvent.note" class="edit-textarea"></textarea>
+          <textarea v-if="isEditing" v-model="detailEvent.note" class="edit-textarea" placeholder="Add notes..."></textarea>
           <div v-else :style="{
                  background: '#f8f8f8',
                  padding: '10px',
                  borderRadius: '8px',
                  fontSize: '13px',
                  marginTop: '4px',
-                 color: detailEvent.is_completed ? '#bbb' : '#666',
-                 transition: 'all 0.3s ease'
+                 color: detailEvent.is_completed ? '#bbb' : '#666'
                }">
             {{ detailEvent.note || 'No notes added' }}
           </div>
@@ -339,10 +436,19 @@ const goToToday = () => {
     }
   })
 }
-
+// --- 处理点击日程块（显示辅助线） ---
 const handleItemClick = (item) => {
-  activeEvent.value = activeEvent.value?.id === item.id ? null : item
-}
+  // 如果点击的是当前已选中的，则取消选中（再次点击消失）
+  if (activeEvent.value?.id === item.id) {
+    activeEvent.value = null;
+  } else {
+    activeEvent.value = item;
+  }
+};
+
+const handleItemDblClick = (item) => {
+  openDetail(item, false); // 查看模式
+};
 
 // --- API 请求 ---
 const fetchSchedules = async () => {
@@ -405,58 +511,215 @@ const validateTime = () => {
   }
 }
 
-const updateScheduleStatus = async (item) => {
-  const originalStatus = !item.is_completed;
+const saveSchedule = async (item) => {
+  if (!item) return false;
+
+  let finalReminderTime = null;
+  // 计算提醒时间
+  if (item.reminder_offset !== null && item.reminder_offset !== undefined) {
+    try {
+      const startDt = new Date(`${item.date}T${item.start}:00`);
+      const reminderDt = new Date(startDt.getTime() - item.reminder_offset * 60000);
+      const pad = (n) => String(n).padStart(2, '0');
+      finalReminderTime = `${reminderDt.getFullYear()}-${pad(reminderDt.getMonth() + 1)}-${pad(reminderDt.getDate())} ${pad(reminderDt.getHours())}:${pad(reminderDt.getMinutes())}:00`;
+    } catch (e) {
+      console.error("Reminder error:", e);
+    }
+  }
 
   try {
-    const res = await axios.put(`http://192.168.124.9:8080/schedule/${item.id}`, {
-      id: item.id,
+    const isNew = item.id === null;
+    const url = isNew ? 'http://192.168.124.9:8080/schedule' : `http://192.168.124.9:8080/schedule/${item.id}`;
+    const method = isNew ? 'post' : 'put';
+
+    const res = await axios[method](url, {
+      ...item,
       name: item.title,
-      note: item.note,
-      start_time: item.date + " " + item.start + ":00", // 拼回 yyyy-MM-dd HH:mm:ss
-      end_time: item.date + " " + item.end + ":00",
-      who: item.who,
-      location: item.location,
-      color: item.color,
-      is_completed: item.is_completed // 关键布尔值
+      start_time: `${item.date} ${item.start}:00`,
+      end_time: `${item.date} ${item.end}:00`,
+      reminder_time: finalReminderTime
     });
 
     if (res.data?.success) {
-      console.log('✅ 数据库同步成功');
+      await fetchSchedules(); // 重新拉取主列表，实现界面刷新
+      console.log('✅ 保存成功');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    alert("保存失败，请检查网络");
+    return false;
+  }
+};
+
+ const isEditing = ref(false)
+
+const openDetail = (item, editMode = false) => {
+  // 使用 JSON 序列化实现深拷贝，确保编辑时背景不跟着变
+  detailEvent.value = JSON.parse(JSON.stringify(item));
+  isEditing.value = editMode;
+};
+
+// --- 创建新日程逻辑 ---
+const createNewSchedule = () => {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const currentDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const startTime = `${pad(now.getHours())}:00`;
+  const endTime = `${pad(Math.min(now.getHours() + 1, 23))}:00`;
+
+  const newItem = {
+    id: null, // 标记为新日程
+    title: '',
+    note: '',
+    date: currentDate,
+    start: startTime,
+    end: endTime,
+    who: [],
+    location: '',
+    color: '#409EFF',
+    is_completed: false,
+    reminder_offset: null,
+    reminder_time: null
+  };
+
+  openDetail(newItem, true); // 直接进入编辑模式
+};
+
+const toggleEdit = async () => {
+  if (isEditing.value) {
+    // 处于编辑状态点击 Done -> 执行保存
+    const success = await saveSchedule(detailEvent.value);
+    if (success) {
+      isEditing.value = false;
+      detailEvent.value = null; // 只有保存成功才关闭
+    }
+  } else {
+    // 处于查看状态点击编辑图标 -> 进入编辑
+    isEditing.value = true;
+  }
+};
+
+// --- 删除日程逻辑 ---
+const handleDelete = async (item) => {
+  // 1. 如果是新建还没保存的，直接关闭即可
+  if (!item.id || String(item.id).startsWith('temp-')) {
+    detailEvent.value = null;
+    isEditing.value = false;
+    return;
+  }
+
+  // 2. 二次确认防止误点
+  if (!confirm('确定要删除这个日程吗？此操作不可撤销。')) {
+    return;
+  }
+
+  try {
+    const res = await axios.delete(`http://192.168.124.9:8080/schedule/${item.id}`);
+
+    if (res.data?.success) {
+      // 3. 删除成功后：刷新主列表并关闭弹窗
+      await fetchSchedules();
+      detailEvent.value = null;
+      isEditing.value = false;
+      activeEvent.value = null;
+      console.log('🗑️ 日程已删除');
     } else {
-      throw new Error('后端响应失败');
+      alert('删除失败：' + (res.data?.message || '未知错误'));
     }
   } catch (error) {
-    console.error("同步失败:", error);
-    item.is_completed = originalStatus; // 回滚
-    alert("无法保存状态，请检查网络或后端服务");
+    console.error("Delete error:", error);
+    alert('删除请求失败，请检查网络连接');
   }
-}
+};
 
-const isEditing = ref(false)
+const handleStatusChange = async (item) => {
+  await saveSchedule(item);
+};
 
-// 切换编辑模式
-const toggleEdit = () => {
-  if (isEditing.value) {
-    // 如果是从编辑模式退出，则保存
-    updateScheduleStatus(detailEvent.value)
-  }
-  isEditing.value = !isEditing.value
-}
-
-// 修改关闭弹窗的方法，确保重置编辑状态
+// 7. 修改：关闭弹窗 (点击空白处)
 const closeModal = () => {
-  if (isEditing.value) {
-    updateScheduleStatus(detailEvent.value)
+  detailEvent.value = null;
+  isEditing.value = false;
+  showColorPicker.value = false; // 确保弹窗关闭时 Picker 也隐藏
+};
+
+const colorPool = ref([]);
+
+const fetchColorPool = async () => {
+  try {
+    // 这里的 URL 换成你刚才写好的 Controller 路径
+    const res = await axios.get('http://192.168.124.9:8080/api/colorList');
+    colorPool.value = res.data;
+  } catch (err) {
+    console.error("Fetch colors failed:", err);
+    // 如果后端没好，可以先用一组默认值兜底
+    colorPool.value = ['#FF0000', '#409EFF', '#67C23A', '#E6A23C', '#F56C6C'];
   }
-  detailEvent.value = null
-  isEditing.value = false
-}
+};
 
 onMounted(() => {
-  fetchSchedules()
-  goToToday()
-})
+  fetchSchedules();
+  fetchColorPool(); // 加载颜色
+  goToToday();
+});
+
+// --- 标签管理 ---
+const inputVisible = ref(false)
+const inputValue = ref('')
+const InputRef = ref(null)
+
+const showInput = () => {
+  inputVisible.value = true
+  nextTick(() => {
+    InputRef.value?.focus()
+  })
+}
+
+const handleInputConfirm = () => {
+  if (inputValue.value) {
+    if (!detailEvent.value.who) detailEvent.value.who = []
+    detailEvent.value.who.push(inputValue.value)
+  }
+  inputVisible.value = false
+  inputValue.value = ''
+}
+
+const removeWho = (index) => {
+  detailEvent.value.who.splice(index, 1)
+}
+
+// --- 提醒文本转换 ---
+const getReminderLabel = (val) => {
+  const map = {
+    'none': 'No reminder',
+    '0': 'At time of event',
+    '5': '5 minutes before',
+    '15': '15 minutes before',
+    '60': '1 hour before',
+    '1440': '1 day before'
+  }
+  return map[val] || 'No reminder'
+}
+
+// --- 颜色选择器逻辑 ---
+const showColorPicker = ref(false);
+
+// 选择颜色并关闭弹窗
+const selectColor = (code) => {
+  detailEvent.value.color = code;
+  showColorPicker.value = false;
+};
+
+// 辅助函数：根据背景色深浅返回黑色或白色的文字颜色（用于按钮文字可读性）
+const getContrastColor = (hexcolor) => {
+  if (!hexcolor) return '#fff';
+  const r = parseInt(hexcolor.substring(1, 3), 16);
+  const g = parseInt(hexcolor.substring(3, 5), 16);
+  const b = parseInt(hexcolor.substring(5, 7), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return (yiq >= 128) ? '#333' : '#fff';
+};
 </script>
 
 <style scoped>
@@ -632,22 +895,68 @@ onMounted(() => {
 }
 
 /* 9. 悬浮按钮 */
-.floating-today-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 30px;
-  width: 50px;
-  height: 50px;
-  background-color: #409EFF;
-  color: white;
-  border: none;
+/* 浮动按钮组容器 */
+.floating-action-group {
+  position: fixed; /* 核心：固定定位 */
+  right: 24px;     /* 距离右侧距离 */
+  bottom: 30px;    /* 距离底部距离 */
+  display: flex;
+  flex-direction: column; /* 垂直排列 */
+  gap: 16px;       /* 按钮之间的间距 */
+  z-index: 9999;   /* 确保在所有元素之上 */
+  pointer-events: none; /* 防止容器遮挡下方点击，内部按钮需设为 auto */
+}
+
+/* 统一按钮基础样式 */
+.floating-btn {
+  pointer-events: auto; /* 恢复按钮可点击 */
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(64,158,255,0.4);
-  cursor: pointer;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 加号按钮 - 蓝色主色 */
+.add-btn {
+  background-color: #409EFF;
+  color: white;
+}
+
+/* Now 按钮 - 白色简约 */
+.today-btn {
+  background-color: #ffffff;
+  color: #409EFF;
+  font-weight: bold;
+  font-size: 13px;
+  border: 1px solid #e8e8e8;
+}
+
+/* 交互反馈 */
+.floating-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(64, 158, 255, 0.3);
+}
+
+.floating-btn:active {
+  transform: scale(0.92);
+}
+
+/* 适配移动端 */
+@media (max-width: 768px) {
+  .floating-action-group {
+    right: 16px;
+    bottom: 20px;
+  }
+  .floating-btn {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 /* 10. 弹窗样式 */
@@ -783,4 +1092,134 @@ onMounted(() => {
 }
 .pop-enter-active, .pop-leave-active { transition: all 0.3s ease; }
 .pop-enter-from, .pop-leave-to { opacity: 0; transform: scale(0.9); }
+
+/* 自定义标签颜色 */
+.custom-blue-tag {
+  background-color: #ecf5ff !important;
+  border-color: #d9ecff !important;
+  color: #409EFF !important;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+:deep(.custom-blue-tag .el-tag__close) {
+  color: #409EFF !important;
+}
+
+:deep(.custom-blue-tag .el-tag__close:hover) {
+  background-color: #409EFF !important;
+  color: #fff !important;
+}
+
+/* 添加按钮样式 */
+.button-new-tag {
+  margin-bottom: 6px;
+  height: 24px;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-style: dashed;
+}
+
+.new-tag-input {
+  width: 80px;
+  margin-bottom: 6px;
+  vertical-align: bottom;
+}
+
+/* 强制 Select 选框焦点颜色 */
+.blue-select :deep(.el-input.is-focus .el-input__wrapper) {
+  box-shadow: 0 0 0 1px #409EFF inset !important;
+}
+
+/* 统一编辑态下的 input/textarea 边框 */
+.edit-input:focus,
+.edit-textarea:focus,
+.new-tag-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #409EFF !important;
+  box-shadow: 0 0 0 1px #409EFF !important;
+  outline: none;
+}
+
+/* 颜色预览按钮（方形） */
+.square-preview {
+  height: 38px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+/* 弹出层容器 */
+.color-picker-popover {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  z-index: 1000;
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  border: 1px solid #eee;
+  width: 230px; /* 宽度适配 6 列方形 */
+}
+
+/* 弹出层小箭头 */
+.popover-arrow {
+  position: absolute;
+  top: -6px;
+  left: 20px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  transform: rotate(45deg);
+  border-left: 1px solid #eee;
+  border-top: 1px solid #eee;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+/* 核心修改：方形色块 */
+.color-block {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-radius: 2px; /* 方形效果的关键 */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+
+.color-block:hover {
+  transform: scale(1.1);
+}
+
+/* 白色对勾 */
+.check-white {
+  width: 5px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
+
+/* 过渡动画 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s, transform 0.2s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
 </style>

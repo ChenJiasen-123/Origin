@@ -30,14 +30,12 @@ public class ScheduleServiceImpl  implements ScheduleService {
     }
 
     @Override
-    public void deleteAllSchedulesByIds(List<Integer> ids) {
-        if(ids==null||ids.size()==0){
+    public void deleteScheduleById(Integer id) {
+        if(id==null){
             return;
         }
-        for(Integer id:ids){
-            scheduleRepository.findById(id).orElseThrow(()->new IllegalStateException("id: "+id+" does not exist"));
-            scheduleRepository.deleteById(id);
-        }
+        scheduleRepository.findById(id).orElseThrow(()->new IllegalStateException("id: "+id+" does not exist"));
+        scheduleRepository.deleteById(id);
     }
 
     @Override
