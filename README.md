@@ -31,3 +31,5 @@
 响应式适配：通讯录与日程表均适配移动端，日程表在手机上支持流畅的横向滚动。
 
 状态实时同步：后端通过 Enum 管理静态数据（如颜色、提醒类型），前端接口即时调用，确保数据一致性。
+
+![7863c11838f6a3fdb96932f4ee468e64](https://github.com/user-attachments/assets/accaacb6-7937-4f7a-8fdd-ab28debef570)
