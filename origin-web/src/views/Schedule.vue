@@ -758,12 +758,15 @@ const getContrastColor = (hexcolor) => {
   color: #333;
 }
 
-/* 3. 滚动区域 */
 .schedule-scroll-viewport {
   flex: 1;
   overflow-x: auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+
+  /* --- 核心添加：滚动吸附 --- */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 38px;
 }
 .schedule-full-width {
   min-width: 100%;
@@ -799,11 +802,15 @@ const getContrastColor = (hexcolor) => {
   top: 0;
   z-index: 25;
 }
+/* 修改第 5 节：顶部周信息 */
 .day-column-header {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  /* --- 核心添加：吸附对齐 --- */
+  scroll-snap-align: start;       /* 停止时对齐到列的左边缘 */
 }
 .day-column-header.is-today .day-label,
 .day-column-header.is-today .date-label {
