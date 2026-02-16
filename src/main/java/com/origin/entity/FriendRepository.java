@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface FriendRepository extends JpaRepository<Friend, Integer> {
+public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     // 使用 JPQL 实现多字段模糊匹配
     @Query("SELECT f FROM Friend f WHERE " +

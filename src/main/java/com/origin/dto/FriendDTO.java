@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @Data
 public class FriendDTO {
-    private Integer id;
+    private Long id;
     private String name;
     private Integer age;
     private Long number;

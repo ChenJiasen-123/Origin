@@ -16,7 +16,7 @@ public class ScheduleServiceImpl  implements ScheduleService {
     private ScheduleRepository scheduleRepository;
 
     @Override
-    public ScheduleDTO getScheduleById(Integer id) {
+    public ScheduleDTO getScheduleById(Long id) {
         Schedule schedule = scheduleRepository.findById(id).orElse(null);
         if(schedule == null) return null;
         return ScheduleConverter.convertToScheduleDTO(schedule);
@@ -30,7 +30,7 @@ public class ScheduleServiceImpl  implements ScheduleService {
     }
 
     @Override
-    public void deleteScheduleById(Integer id) {
+    public void deleteScheduleById(Long id) {
         if(id==null){
             return;
         }
@@ -39,7 +39,7 @@ public class ScheduleServiceImpl  implements ScheduleService {
     }
 
     @Override
-    public void updateScheduleById(Integer id, ScheduleDTO scheduleDTO) {
+    public void updateScheduleById(Long id, ScheduleDTO scheduleDTO) {
         Schedule scheduleInDB = scheduleRepository.findById(id).orElseThrow(()->new IllegalStateException("id: "+id+" does not exist"));
         if(scheduleInDB!=null&&scheduleDTO!=null){
             scheduleInDB = ScheduleConverter.convertToSchedule(scheduleDTO);

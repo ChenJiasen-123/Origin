@@ -11,7 +11,6 @@ public class WebConfig implements WebMvcConfigurer {
         // 允许前端跨域访问所有接口
         registry.addMapping("/**")
                 .allowedOriginPatterns("*")
-                //.allowedOrigins("http://192.168.124.8:5173","http://localhost:5173") // 允许 Vue 开发服务器访问
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowCredentials(true);
     }

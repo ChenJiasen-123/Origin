@@ -13,13 +13,13 @@ import java.util.List;
  * <li>updateFriendByName</li>
  */
 public interface FriendService {
-    FriendDTO getFriendById(Integer id);
+    FriendDTO getFriendById(Long id);
 
     void addNewFriend(FriendDTO friendDTO);
 
-    void deleteAllFriendsByIds(List<Integer> ids);
+    void deleteAllFriendsByIds(List<Long> ids);
 
-    void updateFriendById(Integer id, FriendDTO friendDTO);
+    void updateFriendById(Long id, FriendDTO friendDTO);
 
     List<FriendDTO> getFriendsByKeyword(String keyword);
 }
