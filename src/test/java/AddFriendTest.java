@@ -29,8 +29,8 @@ class AddFriendsTest {
 
     @Test
     void updateFriend() {
-        friendService.updateFriendById(6,FriendDTO.builder().name("陈可胜").number(1234567890L).tags(List.of("书法","华南理工大学","帅气")).hometown("广东揭阳").build());
-        friendService.updateFriendById(5,FriendDTO.builder().name("袁一泓").number(123456789123L).birthday(LocalDate.parse("2007-09-01")).tags(List.of("美丽","摄影","东北电力大学","书法")).hometown("广东揭阳").build());
-        friendService.updateFriendById(8,FriendDTO.builder().name("罗英灏").number(1234567890L).tags(List.of("汕头大学","帅气")).birthday(LocalDate.parse("2007-11-03")).hometown("广东揭阳").build());
+        friendService.updateFriendById(6L,FriendDTO.builder().name("陈可胜").number(1234567890L).tags(List.of("书法","华南理工大学","帅气")).hometown("广东揭阳").build());
+        friendService.updateFriendById(5L,FriendDTO.builder().name("袁一泓").number(123456789123L).birthday(LocalDate.parse("2007-09-01")).tags(List.of("美丽","摄影","东北电力大学","书法")).hometown("广东揭阳").build());
+        friendService.updateFriendById(8L,FriendDTO.builder().name("罗英灏").number(1234567890L).tags(List.of("汕头大学","帅气")).birthday(LocalDate.parse("2007-11-03")).hometown("广东揭阳").build());
     }
 }

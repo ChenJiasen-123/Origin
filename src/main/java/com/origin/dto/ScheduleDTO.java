@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 @Data
 public class ScheduleDTO {
-    private Integer id;
+    private Long id;
     private String name;
     private String note;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

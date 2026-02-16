@@ -15,7 +15,7 @@ public class FriendController {
     private FriendService friendService;
 
     @GetMapping("/friend/{id}")
-    public Response<FriendDTO> getFriendById(@PathVariable Integer id){
+    public Response<FriendDTO> getFriendById(@PathVariable Long id){
         return Response.newSuccess(friendService.getFriendById(id));
     }
 
@@ -26,13 +26,13 @@ public class FriendController {
     }
 
     @DeleteMapping("/friend")
-    public Response<Void> deleteFriends(@RequestBody List<Integer> ids){
+    public Response<Void> deleteFriends(@RequestBody List<Long> ids){
         friendService.deleteAllFriendsByIds(ids);
         return Response.newSuccess(null);
     }
 
     @PutMapping("/friend/{id}")
-    public Response<Void> updateFriendById(@PathVariable Integer id, @RequestBody FriendDTO friendDTO){
+    public Response<Void> updateFriendById(@PathVariable Long id, @RequestBody FriendDTO friendDTO){
         friendService.updateFriendById(id,friendDTO);
         return Response.newSuccess(null);
     }
