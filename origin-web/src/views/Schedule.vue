@@ -725,10 +725,14 @@ const getContrastColor = (hexcolor) => {
 <style scoped>
 /* 1. 基础容器与优化 */
 .origin-schedule {
-  position: relative;
+position: fixed; /* 使用 fixed 代替 relative，彻底锁定在视口 */
+  top: 60px;
+  bottom:0px;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  box-sizing: border-box;
   background: #fff;
   overflow: hidden;
   touch-action: manipulation; /* 优化：消除移动端双击延迟 */
@@ -756,22 +760,6 @@ const getContrastColor = (hexcolor) => {
   font-weight: bold;
   font-size: 13px;
   color: #333;
-}
-
-.schedule-scroll-viewport {
-  flex: 1;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-
-  /* --- 核心添加：滚动吸附 --- */
-  scroll-snap-type: x mandatory;
-  scroll-padding-left: 38px;
-}
-.schedule-full-width {
-  min-width: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 /* 4. 时间轴侧边栏 */
@@ -802,15 +790,13 @@ const getContrastColor = (hexcolor) => {
   top: 0;
   z-index: 25;
 }
-/* 修改第 5 节：顶部周信息 */
 .day-column-header {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  /* --- 核心添加：吸附对齐 --- */
-  scroll-snap-align: start;       /* 停止时对齐到列的左边缘 */
+scroll-snap-align: start;
 }
 .day-column-header.is-today .day-label,
 .day-column-header.is-today .date-label {
@@ -949,18 +935,47 @@ const getContrastColor = (hexcolor) => {
   transform: scale(0.92);
 }
 
-/* 适配移动端 */
-@media (max-width: 768px) {
-  .floating-action-group {
-    right: 16px;
-    bottom: 20px;
-  }
-  .floating-btn {
-    width: 48px;
-    height: 48px;
-  }
+.schedule-scroll-viewport {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* --- 核心添加：滚动吸附 --- */
+/* 明确：只在 X 轴强制吸附 */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 38px;
+
+  /* 允许斜向滑动，不锁定轴向，保证纵向灵敏度 */
+  touch-action: auto;
+}
+
+.grid-col {
+  flex: 1;
+  border-right: 1px solid #f2f2f2;
+
+  /* 核心添加：让背景列在横向成为对齐点 */
+  scroll-snap-align: start;
+}
+
+.schedule-full-width {
+  /* 这里的 3 是指同屏显示 3 天，公式：(容器宽 - 侧边栏宽) / 3天 * 总共7天 + 侧边栏宽 */
+  width: calc((100vw - 38px) / 3 * 7 + 38px);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+/*适配电脑端*/
+@media screen and (min-width: 1024px) {
   .schedule-full-width {
-    width: calc((100vw - 62px) / 3 * 7);
+    width: 100%; /* 电脑端直接铺满，同屏显示 7 天 */
+    min-width: 100%;
+  }
+
+  .schedule-scroll-viewport {
+
+    scroll-snap-type: none; /* 电脑端不需要强行吸附 */
+    overflow-x: hidden;    /* 电脑端通常不需要横向滚动 */
   }
 }
 

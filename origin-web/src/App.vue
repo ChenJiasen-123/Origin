@@ -44,22 +44,25 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Menu } from '@element-plus/icons-vue' // 需要先安装图标库
+import { Menu } from '@element-plus/icons-vue'
 
-const drawer = ref(false) // 控制抽屉打开/关闭
+const drawer = ref(false)
 </script>
 
 <style>
-/* 基础样式 */
+/* 1. 基础样式 */
 body { margin: 0; font-family: Arial, sans-serif; }
 
 .navbar {
   background-color: #409EFF;
   color: white;
-  padding: 0 20px;
+  padding: 0 15px; /* 移动端间距稍小 */
   height: 60px;
   display: flex;
   align-items: center;
+  position: sticky; /* 吸顶 */
+  top: 0;
+  z-index: 1000;
 }
 
 .header-content {
@@ -69,35 +72,50 @@ body { margin: 0; font-family: Arial, sans-serif; }
   align-items: center;
 }
 
-.logo { margin: 0; font-style: italic; }
+.logo { margin: 0; font-style: italic; font-size: 20px; }
 
-/* 电脑端导航样式 */
-.desktop-nav { display: flex; }
-.nav-item {
-  color: white;
-  margin-left: 20px;
-  text-decoration: none;
-  font-weight: bold;
+/* 2. 【默认状态】就是手机 App 状态 */
+.desktop-nav {
+  display: none !important; /* 默认不显示横向导航 */
 }
 
-/* 手机端按钮默认隐藏 */
-.mobile-menu-btn { display: none; }
+.mobile-menu-btn {
+  display: flex !important; /* 默认显示汉堡按钮 */
+  align-items: center;
+  justify-content: center;
+}
 
 /* 抽屉内菜单样式 */
-.mobile-nav-list { display: flex; flex-direction: column; }
+.mobile-nav-list { display: flex; flex-direction: column; padding: 0 10px; }
 .mobile-nav-item {
-  padding: 15px 0;
+  padding: 18px 0;
   text-decoration: none;
   color: #333;
-  font-size: 18px;
-  border-bottom: 1px solid #eee;
+  font-size: 16px;
+  border-bottom: 1px solid #f5f5f5;
+  font-weight: 500;
 }
 
-/* 响应式核心：媒体查询 */
-@media (max-width: 768px) {
-  .desktop-nav { display: none; }      /* 隐藏电脑导航 */
-  .mobile-menu-btn { display: block; } /* 显示手机按钮 */
+/* 3. 【判断电脑端】只有大屏幕才切换布局 */
+@media screen and (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none !important; /* 电脑端隐藏汉堡按钮 */
+  }
+
+  .desktop-nav {
+    display: flex !important; /* 电脑端显示横向导航 */
+  }
+
+  .nav-item {
+    color: white;
+    margin-left: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    transition: opacity 0.2s;
+  }
+  .nav-item:hover { opacity: 0.8; }
 }
 
-.main-content { padding: 20px; }
+.main-content { padding: 0; } /* 既然是 App，内容区通常不建议给死 padding */
 </style>

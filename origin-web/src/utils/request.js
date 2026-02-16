@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const request = axios.create({
-  baseURL: '/origin',
+  baseURL: 'http://192.168.124.9:8080',//服务器IP
   timeout: 5000
 })
 
