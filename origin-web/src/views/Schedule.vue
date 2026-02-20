@@ -321,6 +321,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import request from '../utils/request'
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 // --- 基础配置 ---
 const hours = Array.from({ length: 24 }, (_, i) => i + 0)
@@ -610,7 +611,7 @@ const handleDelete = async (item) => {
   }
 
   // 2. 二次确认防止误点
-  if (!confirm('确定要删除这个日程吗？此操作不可撤销。')) {
+  if (!confirm('Are you sure you want to delete this schedule?')) {
     return;
   }
 
@@ -720,6 +721,7 @@ const getContrastColor = (hexcolor) => {
   const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
   return (yiq >= 128) ? '#333' : '#fff';
 };
+
 </script>
 
 <style scoped>
