@@ -24,4 +24,8 @@ public class ScheduleDTO {
     private LocalDateTime reminder_time;
     private Boolean is_completed;
 
+    public Long getReminderTimestamp() {
+        if (this.reminder_time == null) return null;
+        return this.reminder_time.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
 }
