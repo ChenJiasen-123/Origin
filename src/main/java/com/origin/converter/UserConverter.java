@@ -5,7 +5,7 @@ import com.origin.entity.User;
 
 public class UserConverter {
 
-    public UserDTO convertToUserDTO(User user){
+    public static UserDTO convertToUserDTO(User user){
 
         return UserDTO.builder().id(user.getId()).
                 name(user.getName()).
@@ -17,7 +17,7 @@ public class UserConverter {
                 avatar(user.getAvatar()).build();
     }
 
-    public User convertToUser(UserDTO userDTO){
+    public static User convertToUser(UserDTO userDTO){
 
         User user = new User();
 
