@@ -5,6 +5,7 @@ import FriendList from '../views/FriendList.vue'
 import FriendDetail from '../views/FriendDetail.vue'
 import FriendEdit from '../views/FriendEdit.vue'
 import Schedule from '../views/Schedule.vue'
+import request from '../utils/request'
 
 const routes = [
   {
@@ -41,6 +42,23 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 路由守卫：除 Home 外，其余页面需登录
+router.beforeEach(async (to, from, next) => {
+  if (to.path === '/') {
+    return next()
+  }
+  try {
+    const res = await request.get('/user/me')
+    if (res.data && res.data.success) {
+      next()
+    } else {
+      next('/')
+    }
+  } catch (e) {
+    next('/')
+  }
 })
 
 export default router
