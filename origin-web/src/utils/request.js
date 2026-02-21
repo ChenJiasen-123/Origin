@@ -5,4 +5,6 @@ const request = axios.create({
   timeout: 5000
 })
 
+request.defaults.withCredentials = true
+
 export default request
