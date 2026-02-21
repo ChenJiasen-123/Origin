@@ -3,6 +3,8 @@ package com.origin.controller;
 import com.origin.Response;
 import com.origin.dto.UserDTO;
 import com.origin.service.UserServiceImpl;
+import com.origin.service.VerificationCodeService;
+import com.origin.service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,25 @@ public class UserController {
 
     @Autowired
     private UserServiceImpl userService;
+    @Autowired
+    private VerificationCodeService verificationCodeService;
+    @Autowired
+    private EmailService emailService;
+
+    @PostMapping("/sendCode")
+    public Response<String> sendCode(@RequestBody UserDTO userDTO) {
+        String email = userDTO.getEmail();
+        if (email == null || !email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            return Response.newFail("邮箱格式不合法");
+        }
+        String code = verificationCodeService.generate(email);
+        try {
+            emailService.sendVerificationCode(email, code);
+        } catch (Exception ex) {
+            return Response.newFail("发送验证码失败，请检查邮件配置");
+        }
+        return Response.newSuccess("验证码已发送，请检查邮箱");
+    }
 
     @PostMapping("/register")
     public Response<UserDTO> register(@RequestBody UserDTO userDTO) {

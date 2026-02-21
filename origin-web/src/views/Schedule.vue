@@ -106,6 +106,8 @@
       </button>
     </div>
 
+  <!-- 左侧抽屉菜单已移除 -->
+
 <Transition name="pop">
   <div v-if="detailEvent" class="detail-modal-mask" @click="closeModal">
     <div class="detail-modal-card" @click.stop>
@@ -142,7 +144,7 @@
         </div>
 
         <div class="modal-info-row">
-          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" placeholder="Event Title" />
+          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" placeholder="Event Title" ref="titleInputRef" />
           <h3 v-else class="modal-title" :style="detailEvent.is_completed ? 'color: #999; text-decoration: line-through;' : ''">
             {{ detailEvent.title || 'Untitled Event' }}
           </h3>
@@ -322,6 +324,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import request from '../utils/request'
 import { LocalNotifications } from '@capacitor/local-notifications';
+// 已移除左侧抽屉相关路由跳转
 
 // --- 基础配置 ---
 const hours = Array.from({ length: 24 }, (_, i) => i + 0)
@@ -333,6 +336,7 @@ const detailEvent = ref(null)      // 用于双击弹窗展示
 const scrollContainer = ref(null)
 const schedules = ref([])
 const startOfWeek = ref(getMonday(new Date()))
+// 已移除左侧抽屉状态
 
 // --- 日期处理逻辑 ---
 function getMonday(d) {
@@ -598,6 +602,11 @@ const toggleEdit = async () => {
   } else {
     // 处于查看状态点击编辑图标 -> 进入编辑
     isEditing.value = true;
+    nextTick(() => {
+      // 聚焦并滚动到可视区域（解决移动端键盘遮挡）
+      titleInputRef.value?.focus();
+      titleInputRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
 };
 
@@ -705,6 +714,9 @@ const getReminderLabel = (val) => {
 
 // --- 颜色选择器逻辑 ---
 const showColorPicker = ref(false);
+const titleInputRef = ref(null);
+
+// 已移除左侧抽屉路由与登出按钮
 
 // 选择颜色并关闭弹窗
 const selectColor = (code) => {
@@ -992,6 +1004,7 @@ scroll-snap-align: start;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  overscroll-behavior: contain; /* 阻止背景页面跟随滑动 */
 }
 .detail-modal-card {
   background: #fff;
@@ -999,12 +1012,20 @@ scroll-snap-align: start;
   max-width: 320px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  overflow: hidden;
+  /* 允许内部弹出层溢出（避免色盘被裁切） */
+  overflow: visible;
   animation: modalShow 0.2s ease-out;
   user-select: none;
+  touch-action: pan-y; /* 仅允许垂直滚动，避免左右滑动 */
 }
 .modal-line { height: 6px; width: 100%; }
-.modal-main { padding: 24px; }
+.modal-main {
+  padding: 24px;
+  /* 移动端滚动容器，避免键盘遮挡编辑内容 */
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .modal-title { margin: 0 0 16px 0; font-size: 18px; color: #333; font-weight: 600; }
 .modal-info-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 2px; }
 .info-label { font-size: 11px; color: #999; text-transform: uppercase; }
@@ -1180,21 +1201,26 @@ scroll-snap-align: start;
 .color-picker-popover {
   position: absolute;
   top: 48px;
+  /* 居中显示，避免超出右侧裁切 */
   left: 0;
+  right: 0;
+  margin: 0 auto;
   z-index: 1000;
   background: white;
   padding: 12px;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   border: 1px solid #eee;
-  width: 230px; /* 宽度适配 6 列方形 */
+  width: min(90vw, 320px); /* 移动端自适应宽度 */
+  max-height: 50vh;        /* 允许色盘垂直滚动 */
+  overflow-y: auto;
 }
 
 /* 弹出层小箭头 */
 .popover-arrow {
   position: absolute;
   top: -6px;
-  left: 20px;
+  left: calc(50% - 6px);
   width: 12px;
   height: 12px;
   background: white;

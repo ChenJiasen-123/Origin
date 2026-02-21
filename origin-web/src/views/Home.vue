@@ -20,10 +20,16 @@
               <el-input v-model="form.email" placeholder="example@mail.com" />
             </el-form-item>
             <el-form-item label="密码">
-              <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+              <el-input v-model="form.password" type="password" placeholder="仅允许字母和数字" />
             </el-form-item>
             <el-form-item v-if="isRegister" label="昵称（可选）">
               <el-input v-model="form.name" placeholder="你的昵称" />
+            </el-form-item>
+            <el-form-item v-if="isRegister" label="邮箱验证码">
+              <div style="display:flex; gap:8px; width:100%;">
+                <el-input v-model="form.code" placeholder="6位验证码" />
+                <el-button :disabled="countdown>0" @click="sendCode">{{ countdown>0 ? countdown+'s' : '获取验证码' }}</el-button>
+              </div>
             </el-form-item>
             <el-button
               type="primary"
@@ -55,10 +61,40 @@ const form = ref({
   password: '',
   name: ''
 })
+const countdown = ref(0)
+let timer = null
+
+const sendCode = async () => {
+  if (!form.value.email) {
+    ElMessage.warning('请输入邮箱')
+    return
+  }
+  try {
+    const res = await request.post('/user/sendCode', { email: form.value.email })
+    if (res.data?.success) {
+      ElMessage.success('验证码已发送，请检查邮箱（注意垃圾箱）')
+      countdown.value = 60
+      timer = setInterval(() => {
+        countdown.value -= 1
+        if (countdown.value <= 0) {
+          clearInterval(timer); timer = null
+        }
+      }, 1000)
+    } else {
+      throw new Error(res.data?.errorMsg || '发送失败')
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '发送失败')
+  }
+}
 
 const handleSubmit = async () => {
   if (!form.value.email || !form.value.password) {
     ElMessage.warning('请输入邮箱和密码')
+    return
+  }
+  if (!/^[A-Za-z0-9]+$/.test(form.value.password)) {
+    ElMessage.warning('密码仅允许大小写字母和数字')
     return
   }
   loading.value = true

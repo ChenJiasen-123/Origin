@@ -17,10 +17,18 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private VerificationCodeService verificationCodeService;
 
     public UserDTO register(UserDTO userDTO) {
         if (userDTO == null || userDTO.getEmail() == null || userDTO.getPassword() == null) {
             throw new IllegalArgumentException("邮箱或密码为空");
+        }
+        if (userDTO.getCode() == null || !verificationCodeService.verify(userDTO.getEmail(), userDTO.getCode())) {
+            throw new IllegalStateException("邮箱验证码错误或已过期");
+        }
+        if (!userDTO.getPassword().matches("^[A-Za-z0-9]+$")) {
+            throw new IllegalStateException("密码仅允许大小写字母和数字");
         }
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new IllegalStateException("邮箱已存在");

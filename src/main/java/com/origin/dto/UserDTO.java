@@ -13,6 +13,7 @@ public class UserDTO {
     private String name;
     private String password;
     private String email;
+    private String code;
     private String avatar;
     private LocalDateTime create_time;
     private LocalDateTime update_time;

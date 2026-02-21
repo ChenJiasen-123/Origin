@@ -6,6 +6,7 @@ import FriendDetail from '../views/FriendDetail.vue'
 import FriendEdit from '../views/FriendEdit.vue'
 import Schedule from '../views/Schedule.vue'
 import request from '../utils/request'
+import Account from '../views/Account.vue'
 
 const routes = [
   {
@@ -37,6 +38,12 @@ const routes = [
     path: '/schedule',
     name: 'Schedule',
     component: Schedule}
+  ,
+  {
+    path: '/account',
+    name: 'Account',
+    component: Account
+  }
 ]
 
 const router = createRouter({

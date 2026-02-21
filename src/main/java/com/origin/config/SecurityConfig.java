@@ -25,7 +25,7 @@ public class SecurityConfig {
                 // 3. 配置路径访问规则
                 .authorizeHttpRequests(auth -> auth
                         // 放行注册、登录接口，以及你目前正在测试的接口
-                        .requestMatchers("/user/register", "/user/login", "/schedule/**", "/api/**", "/friend/**").permitAll()
+                        .requestMatchers("/user/register", "/user/login", "/user/sendCode", "/schedule/**", "/api/**", "/friend/**").permitAll()
                         // 其余所有请求暂时也放行（开发阶段方便调试，后期再改回来）
                         .anyRequest().permitAll()
                 )

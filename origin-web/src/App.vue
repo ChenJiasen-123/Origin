@@ -4,11 +4,10 @@
       <div class="header-content">
         <h2 class="logo">Origin</h2>
 
-        <nav class="desktop-nav">
-          <router-link to="/" class="nav-item">Home</router-link>
+        <nav class="desktop-nav" v-if="isAuthed">
           <router-link to="/friend" class="nav-item">Friend</router-link>
-          <router-link to="/notification" class="nav-item">Notification</router-link>
           <router-link to="/schedule" class="nav-item">Schedule</router-link>
+          <router-link to="/account" class="nav-item">Account</router-link>
         </nav>
 
         <el-button
@@ -16,6 +15,7 @@
           type="primary"
           @click="drawer = true"
           circle
+          v-if="isAuthed"
         >
           <el-icon><Menu /></el-icon>
         </el-button>
@@ -24,15 +24,16 @@
 
     <el-drawer
       v-model="drawer"
-      title="Menu"
       direction="ltr"
       size="60%"
     >
-      <div class="mobile-nav-list">
-        <router-link to="/" class="mobile-nav-item" @click="drawer = false">Home</router-link>
+      <div class="mobile-nav-list" v-if="isAuthed">
         <router-link to="/friend" class="mobile-nav-item" @click="drawer = false">Friend</router-link>
-        <router-link to="/notification" class="mobile-nav-item" @click="drawer = false">Notification</router-link>
         <router-link to="/schedule" class="mobile-nav-item" @click="drawer = false">Schedule</router-link>
+        <router-link to="/account" class="mobile-nav-item" @click="drawer = false">Account</router-link>
+        <div style="margin-top: 12px;">
+          <el-button type="danger" plain style="width:100%" @click="handleLogout">Logout</el-button>
+        </div>
       </div>
     </el-drawer>
 
@@ -43,10 +44,42 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { Menu } from '@element-plus/icons-vue'
+import request from './utils/request'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 const drawer = ref(false)
+const isAuthed = ref(false)
+const router = useRouter()
+const route = useRoute()
+
+const checkAuth = async () => {
+  try {
+    const res = await request.get('/user/me')
+    isAuthed.value = !!(res.data && res.data.success)
+  } catch (e) {
+    isAuthed.value = false
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    await request.post('/user/logout')
+    isAuthed.value = false
+    drawer.value = false
+    ElMessage.success('已退出登录')
+    router.replace('/')
+  } catch {
+    ElMessage.error('退出失败')
+  }
+}
+
+onMounted(checkAuth)
+watch(() => route.fullPath, () => {
+  checkAuth()
+})
 </script>
 
 <style>
