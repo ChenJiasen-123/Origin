@@ -1,10 +1,9 @@
 import axios from 'axios'
 
 const request = axios.create({
-  baseURL: 'http://43.138.166.243:2528',//服务器IP
-  timeout: 5000
+  baseURL: '/origin',
+  timeout: 5000,
+  withCredentials: true
 })
-
-request.defaults.withCredentials = true
 
 export default request

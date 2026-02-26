@@ -1,16 +1,16 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
-  },
   server: {
-    host: '0.0.0.0', // 允许手机访问
-    port: 5173,      // 前端端口
+    proxy: {
+      '/origin': {
+        target: 'http://43.138.166.243:2528',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/origin/, '')
+      }
+    }
   }
 })

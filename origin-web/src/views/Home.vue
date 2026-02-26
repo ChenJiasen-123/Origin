@@ -16,13 +16,13 @@
           </template>
 
           <el-form :model="form" label-position="top">
-            <el-form-item label="邮箱">
+            <el-form-item label="Email">
               <el-input v-model="form.email" placeholder="example@mail.com" />
             </el-form-item>
-            <el-form-item label="密码">
+            <el-form-item label="Password">
               <el-input v-model="form.password" type="password" placeholder="仅允许字母和数字" />
             </el-form-item>
-            <el-form-item v-if="isRegister" label="昵称（可选）">
+            <el-form-item v-if="isRegister" label="Name">
               <el-input v-model="form.name" placeholder="你的昵称" />
             </el-form-item>
             <el-form-item v-if="isRegister" label="邮箱验证码">
@@ -111,7 +111,12 @@ const handleSubmit = async () => {
     })
     if (loginRes.data?.success) {
       ElMessage.success('登录成功')
-      router.push('/friend')
+      try {
+        await request.get('/user/me')
+      } catch (e) {
+        // ignore; 尝试继续跳转
+      }
+      router.replace('/friend')
     } else {
       throw new Error(loginRes.data?.errorMsg || '登录失败')
     }
