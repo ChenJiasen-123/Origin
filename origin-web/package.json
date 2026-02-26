@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -13,6 +13,7 @@
     "@capacitor/local-notifications": "^8.0.1",
     "@capgo/capacitor-alarm": "^8.0.6",
     "axios": "^1.13.5",
+    "cloc": "^2.6.0-cloc",
     "element-plus": "^2.13.2",
     "vue": "^3.5.25",
     "vue-router": "^4.6.4"
