@@ -7,7 +7,19 @@ import android.os.Bundle;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(OriginSecretsPlugin.class);
+        registerPlugin(ScheduleWidgetPlugin.class);
+        registerPlugin(ScheduleAlarmsPlugin.class);
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent.getBooleanExtra("openSchedule", false) && bridge != null) {
+            bridge.triggerWindowJSEvent("origin-widget-open", "{}");
+        }
     }
 
     @Override

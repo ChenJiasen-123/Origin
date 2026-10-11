@@ -1,13 +1,14 @@
 <template>
-  <div id="app-container">
-    <header class="navbar">
+  <el-config-provider :locale="locale" :z-index="21000"><div id="app-container">
+    <header class="navbar" v-if="route.path !== '/'">
       <div class="header-content">
-        <h2 class="logo">Origin</h2>
+        <router-link to="/schedule" class="app-brand"><img src="/brand.png" alt=""/><span>Origin</span></router-link>
 
         <nav class="desktop-nav" v-if="isAuthed">
-          <router-link to="/friend" class="nav-item">Friend</router-link>
-          <router-link to="/schedule" class="nav-item">Schedule</router-link>
-          <router-link to="/account" class="nav-item">Account</router-link>
+          <router-link to="/schedule" class="nav-item">{{ t('课表','Schedule') }}</router-link>
+          <router-link to="/assistant" class="nav-item">{{ t('AI 助手','AI assistant') }}</router-link>
+          <router-link to="/settings" class="nav-item">{{ t('设置','Settings') }}</router-link>
+          <router-link to="/account" class="nav-item">{{ t('账户','Account') }}</router-link>
         </nav>
 
         <el-button
@@ -28,11 +29,12 @@
       size="60%"
     >
       <div class="mobile-nav-list" v-if="isAuthed">
-        <router-link to="/friend" class="mobile-nav-item" @click="drawer = false">Friend</router-link>
-        <router-link to="/schedule" class="mobile-nav-item" @click="drawer = false">Schedule</router-link>
-        <router-link to="/account" class="mobile-nav-item" @click="drawer = false">Account</router-link>
+        <router-link to="/schedule" class="mobile-nav-item" @click="drawer = false">{{ t('课表','Schedule') }}</router-link>
+        <router-link to="/assistant" class="mobile-nav-item" @click="drawer = false">{{ t('AI 助手','AI assistant') }}</router-link>
+        <router-link to="/settings" class="mobile-nav-item" @click="drawer = false">{{ t('设置','Settings') }}</router-link>
+        <router-link to="/account" class="mobile-nav-item" @click="drawer = false">{{ t('账户','Account') }}</router-link>
         <div style="margin-top: 12px;">
-          <el-button type="danger" plain style="width:100%" @click="handleLogout">Logout</el-button>
+          <el-button type="danger" plain style="width:100%" @click="handleLogout">{{ t('退出登录','Log out') }}</el-button>
         </div>
       </div>
     </el-drawer>
@@ -40,13 +42,19 @@
     <main class="main-content">
       <router-view></router-view>
     </main>
-  </div>
+  </div></el-config-provider>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { t } from './utils/i18n'
+import { preferences } from './utils/preferences'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import en from 'element-plus/es/locale/lang/en'
+const locale = computed(() => preferences.language === 'en' ? en : zhCn)
 import { Menu } from '@element-plus/icons-vue'
 import request from './utils/request'
+import { widgetLaunchTarget } from './utils/scheduleWidget'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
@@ -60,7 +68,7 @@ const checkAuth = async () => {
     const res = await request.get('/user/me')
     isAuthed.value = !!(res.data && res.data.success)
   } catch (e) {
-    isAuthed.value = false
+    isAuthed.value = !!sessionStorage.getItem('origin.authenticated')
   }
 }
 
@@ -69,14 +77,18 @@ const handleLogout = async () => {
     await request.post('/user/logout')
     isAuthed.value = false
     drawer.value = false
-    ElMessage.success('已退出登录')
+    ElMessage.success(t('已退出登录','Logged out'))
     router.replace('/')
   } catch {
-    ElMessage.error('退出失败')
+    ElMessage.error(t('退出失败','Unable to log out'))
   }
 }
 
-onMounted(checkAuth)
+const openWidgetSchedule = async () => {
+  if (await widgetLaunchTarget()) router.push('/schedule')
+}
+onMounted(() => { checkAuth(); openWidgetSchedule() })
+window.addEventListener('origin-widget-open', openWidgetSchedule)
 watch(() => route.fullPath, () => {
   checkAuth()
 })
@@ -105,7 +117,7 @@ body { margin: 0; font-family: Arial, sans-serif; }
   align-items: center;
 }
 
-.logo { margin: 0; font-style: italic; font-size: 20px; }
+.app-brand{display:flex;align-items:center;gap:9px;color:inherit;text-decoration:none;font-size:20px;font-weight:650}.app-brand img{width:32px;height:32px;border-radius:9px}
 
 /* 2. 【默认状态】就是手机 App 状态 */
 .desktop-nav {
