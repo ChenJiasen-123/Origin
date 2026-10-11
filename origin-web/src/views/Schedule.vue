@@ -1,10 +1,13 @@
 <template>
   <div class="origin-schedule">
+
     <div class="week-pager">
       <button @click="offsetWeek(-7)" class="pager-btn"><<</button>
       <div class="current-week-info">{{ weekRangeText }}</div>
       <button @click="offsetWeek(7)" class="pager-btn">>></button>
     </div>
+
+    
 
     <div class="schedule-scroll-viewport" ref="scrollContainer">
       <div class="schedule-full-width">
@@ -94,37 +97,37 @@
     </div>
 
     <div class="floating-action-group">
-      <button class="floating-btn add-btn" @click="createNewSchedule" title="添加日程">
+      <button class="floating-btn add-btn" @click="createNewSchedule" :title="t('添加日程','Add schedule')">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
 
-      <button class="floating-btn today-btn" @click="goToToday" title="回到今天">
-        <span>Now</span>
+      <button class="floating-btn today-btn" @click="goToToday" :title="t('回到今天','Today')">
+        <span>{{ t('今天','Now') }}</span>
       </button>
     </div>
 
   <!-- 左侧抽屉菜单已移除 -->
 
+<Teleport to="body">
 <Transition name="pop">
   <div v-if="detailEvent" class="detail-modal-mask" @click="closeModal">
     <div class="detail-modal-card" @click.stop>
       <div class="modal-line" :style="{ backgroundColor: detailEvent.color }"></div>
 
-      <div class="modal-main">
-        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: -10px; margin-bottom: 5px;">
+      <div class="modal-toolbar"><button type="button" class="modal-dismiss" @click="closeModal" :aria-label="t('关闭','Close')">×</button>
 
-          <div @click="toggleEdit" style="cursor: pointer; display: flex; align-items: center;" title="编辑/保存">
+          <button type="button" class="modal-save" @click="toggleEdit" :disabled="saving" :aria-label="isEditing ? t('保存','Save') : t('编辑','Edit')">
             <svg v-if="!isEditing" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
-            <span v-else style="color: #409EFF; font-weight: bold; font-size: 14px;">Done</span>
-          </div>
+            <span v-else>{{ saving ? t('保存中…','Saving…') : t('保存','Save') }}</span>
+          </button>
 
-          <div v-if="isEditing" @click="handleDelete(detailEvent)" style="cursor: pointer; display: flex; align-items: center;" title="删除日程">
+          <div v-if="isEditing" @click="handleDelete(detailEvent)" style="cursor: pointer; display: flex; align-items: center;" :title="t('删除日程','Delete schedule')">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#F56C6C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -143,8 +146,9 @@
           </label>
         </div>
 
+      <div class="modal-main">
         <div class="modal-info-row">
-          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" placeholder="Event Title" ref="titleInputRef" />
+          <input v-if="isEditing" v-model="detailEvent.title" class="edit-input title-input" :placeholder="t('日程标题','Event Title')" ref="titleInputRef" />
           <h3 v-else class="modal-title" :style="detailEvent.is_completed ? 'color: #999; text-decoration: line-through;' : ''">
             {{ detailEvent.title || 'Untitled Event' }}
           </h3>
@@ -155,7 +159,7 @@
             <el-form :model="detailEvent" label-position="top">
               <el-row>
                 <el-col :span="24">
-                  <el-form-item label="Date">
+                  <el-form-item :label="t('日期','Date')">
                     <el-date-picker
                       v-model="detailEvent.date"
                       type="date"
@@ -168,7 +172,7 @@
               </el-row>
               <el-row :gutter="10">
                 <el-col :span="11">
-                  <el-form-item label="Start">
+                  <el-form-item :label="t('开始','Start')">
                     <el-time-picker
                       v-model="detailEvent.start"
                       format="HH:mm"
@@ -183,7 +187,7 @@
                   <span>-</span>
                 </el-col>
                 <el-col :span="11">
-                  <el-form-item label="End">
+                  <el-form-item :label="t('结束','End')">
                     <el-time-picker
                       v-model="detailEvent.end"
                       format="HH:mm"
@@ -198,7 +202,7 @@
             </el-form>
           </div>
           <div v-else class="display-schedule-box" :style="detailEvent.is_completed ? 'opacity: 0.6' : ''">
-            <span class="info-label">Time</span>
+            <span class="info-label">{{ t('时间','Time') }}</span>
             <div class="display-time" style="margin-top: 4px; font-size: 14px; color: #444; font-weight: 500;">
               {{ detailEvent.start }} <span style="color: #ccc; margin: 0 4px;"> - </span> {{ detailEvent.end }}
             </div>
@@ -206,15 +210,15 @@
         </div>
 
         <div class="modal-info-row">
-          <span class="info-label">Location</span>
-          <input v-if="isEditing" v-model="detailEvent.location" class="edit-input" placeholder="Add location" />
+          <span class="info-label">{{ t('地点','Location') }}</span>
+          <input v-if="isEditing" v-model="detailEvent.location" class="edit-input" :placeholder="t('添加地点','Add location')" />
           <span v-else class="info-value" :style="detailEvent.is_completed ? 'color: #999' : ''">
-            {{ detailEvent.location || 'No location' }}
+            {{ detailEvent.location || t('未填写地点','No location') }}
           </span>
         </div>
 
         <div class="modal-info-row">
-          <span class="info-label">Who</span>
+          <span class="info-label">{{ t('参与者','Who') }}</span>
           <div v-if="isEditing" class="edit-tags-container">
             <div class="modal-tags">
               <el-tag
@@ -235,7 +239,7 @@
                 @keyup.enter="handleInputConfirm"
                 @blur="handleInputConfirm"
               />
-              <el-button v-else class="button-new-tag" size="small" @click="showInput">+ Tag</el-button>
+              <el-button v-else class="button-new-tag" size="small" @click="showInput">{{ t('添加参与者','+ Tag') }}</el-button>
             </div>
           </div>
           <div v-else class="modal-tags">
@@ -248,19 +252,19 @@
               }">
               {{ name }}
             </span>
-            <span v-if="!detailEvent.who || detailEvent.who.length === 0" class="info-value" style="color:#ccc">No one</span>
+            <span v-if="!detailEvent.who || detailEvent.who.length === 0" class="info-value" style="color:#ccc">{{ t('无','None') }}</span>
           </div>
         </div>
 
         <div class="modal-info-row" v-if="isEditing">
-          <span class="info-label">Card Color</span>
+          <span class="info-label">{{ t('颜色','Card Color') }}</span>
           <div style="position: relative; margin-top: 8px;">
             <div
               @click="showColorPicker = !showColorPicker"
               class="current-color-preview square-preview"
               :style="{ backgroundColor: detailEvent.color }"
             >
-              <span :style="{ color: getContrastColor(detailEvent.color) }">Change Color</span>
+              <span :style="{ color: getContrastColor(detailEvent.color) }">{{ t('更换颜色','Change Color') }}</span>
             </div>
 
             <Transition name="fade">
@@ -276,32 +280,34 @@
                     <div v-if="detailEvent.color === colorCode" class="check-white"></div>
                   </div>
                 </div>
-                <div class="popover-arrow"></div>
+
               </div>
             </Transition>
           </div>
         </div>
 
          <div class="modal-info-row">
-                  <span class="info-label">Reminder</span>
+                  <span class="info-label">{{ t('提醒','Reminder') }}</span>
                   <div v-if="isEditing">
-                    <el-select v-model="detailEvent.reminder_offset" placeholder="Select" style="width: 100%" class="blue-select">
-                      <el-option label="No reminder" :value="null" />
-                      <el-option label="At time of event" :value="0" />
-                      <el-option label="5 minutes before" :value="5" />
-                      <el-option label="15 minutes before" :value="15" />
-                      <el-option label="1 hour before" :value="60" />
-                      <el-option label="1 day before" :value="1440" />
+                    <el-select v-model="detailEvent.reminder_offset" :placeholder="t('选择','Select')" style="width: 100%" class="blue-select">
+                      <el-option :label="t('关闭','Off')" value="off" />
+                      <el-option :label="t('准时','At time of event')" :value="0" />
+                      <el-option :label="t('提前 5 分钟','5 minutes before')" :value="5" />
+                      <el-option :label="t('提前 10 分钟','10 minutes before')" :value="10" />
+                      <el-option :label="t('提前 15 分钟','15 minutes before')" :value="15" />
+                      <el-option :label="t('提前 30 分钟','30 minutes before')" :value="30" />
+                      <el-option :label="t('提前 1 小时','1 hour before')" :value="60" />
+                      <el-option :label="t('提前 1 天','1 day before')" :value="1440" />
                     </el-select>
                   </div>
                   <span v-else class="info-value">
-                    {{ detailEvent.reminder_time ? detailEvent.reminder_time.replace('T', ' ').substring(0, 16) : 'No reminder' }}
+                    {{ detailEvent.reminder_time ? detailEvent.reminder_time.replace('T', ' ').substring(0, 16) : t('关闭','Off') }}
                   </span>
                 </div>
 
         <div class="modal-info-row" style="margin-top: 15px;">
-          <span class="info-label">Note</span>
-          <textarea v-if="isEditing" v-model="detailEvent.note" class="edit-textarea" placeholder="Add notes..."></textarea>
+          <span class="info-label">{{ t('备注','Note') }}</span>
+          <textarea v-if="isEditing" v-model="detailEvent.note" class="edit-textarea" :placeholder="t('添加备注','Add notes...')"></textarea>
           <div v-else :style="{
                  background: '#f8f8f8',
                  padding: '10px',
@@ -310,20 +316,25 @@
                  marginTop: '4px',
                  color: detailEvent.is_completed ? '#bbb' : '#666'
                }">
-            {{ detailEvent.note || 'No notes added' }}
+            {{ detailEvent.note || t('暂无备注','No notes added') }}
           </div>
         </div>
       </div>
     </div>
   </div>
 </Transition>
+</Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import request from '../utils/request'
-import { LocalNotifications } from '@capacitor/local-notifications';
+import { syncWidget } from '../utils/scheduleWidget'
+import { t } from '../utils/i18n'
+import { ElMessage } from 'element-plus'
+
+import { syncAlarms } from '../utils/scheduleAlarms'
 // 已移除左侧抽屉相关路由跳转
 
 // --- 基础配置 ---
@@ -347,7 +358,7 @@ function getMonday(d) {
 }
 
 const displayWeekDays = computed(() => {
-  const weekNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const weekNames = [t('一','Mon'),t('二','Tue'),t('三','Wed'),t('四','Thu'),t('五','Fri'),t('六','Sat'),t('日','Sun')]
   const today = new Date()
   const formatDate = (date) => {
     const y = date.getFullYear()
@@ -461,6 +472,7 @@ const fetchSchedules = async () => {
 const res = await request.get('/schedule')
     if (res.data?.success) {
       const remoteData = res.data.data || []
+      try { await syncAlarms(remoteData) } catch { ElMessage.warning(t('课表已加载，但闹钟同步失败，请到 Settings 重新保存设置','Schedule loaded. Open Settings to retry alarm sync.')) }
       schedules.value = remoteData.map((item, index) => {
         const rawStart = item.start_time
         const rawEnd = item.end_time
@@ -476,9 +488,11 @@ const res = await request.get('/schedule')
           date: startParts[0],
           color: (item.color && item.color !== 'null') ? item.color : '#409EFF',
           is_completed: item.is_completed === true || item.is_completed === 'true',
+          reminder_offset: item.reminder_time ? Math.round((new Date(rawStart.replace(' ','T')) - new Date(item.reminder_time.replace(' ','T')))/60000) : 'off',
           note: item.note || ""
         }
       }).filter(i => i !== null)
+      await syncWidget(schedules.value.map(({ title, date, start, end, location }) => ({ title, date, start, end, location })))
     }
   } catch (error) {
     console.error("Fetch error:", error)
@@ -518,10 +532,11 @@ const validateTime = () => {
 
 const saveSchedule = async (item) => {
   if (!item) return false;
+  if (!item.title?.trim() || item.end <= item.start) { ElMessage.warning(t('请填写标题，并确保结束时间晚于开始时间','Enter a title and an end time after the start')); return false; }
 
   let finalReminderTime = null;
   // 计算提醒时间
-  if (item.reminder_offset !== null && item.reminder_offset !== undefined) {
+  if (Number.isFinite(Number(item.reminder_offset)) && item.reminder_offset !== null && item.reminder_offset !== undefined) {
     try {
       const startDt = new Date(`${item.date}T${item.start}:00`);
       const reminderDt = new Date(startDt.getTime() - item.reminder_offset * 60000);
@@ -552,7 +567,7 @@ const saveSchedule = async (item) => {
     }
     return false;
   } catch (error) {
-    alert("保存失败，请检查网络");
+    ElMessage.error(t('保存失败，请检查网络','Unable to save. Check your connection.'));
     return false;
   }
 };
@@ -584,17 +599,21 @@ const createNewSchedule = () => {
     location: '',
     color: '#409EFF',
     is_completed: false,
-    reminder_offset: null,
+    reminder_offset: 'off',
     reminder_time: null
   };
 
   openDetail(newItem, true); // 直接进入编辑模式
 };
 
+const saving = ref(false)
 const toggleEdit = async () => {
+  if (saving.value) return
   if (isEditing.value) {
     // 处于编辑状态点击 Done -> 执行保存
-    const success = await saveSchedule(detailEvent.value);
+    saving.value = true;
+    let success = false;
+    try { success = await saveSchedule(detailEvent.value); } finally { saving.value = false; }
     if (success) {
       isEditing.value = false;
       detailEvent.value = null; // 只有保存成功才关闭
@@ -620,7 +639,7 @@ const handleDelete = async (item) => {
   }
 
   // 2. 二次确认防止误点
-  if (!confirm('Are you sure you want to delete this schedule?')) {
+  if (!confirm(t('确认删除这个日程？','Delete this schedule?'))) {
     return;
   }
 
@@ -737,6 +756,7 @@ const getContrastColor = (hexcolor) => {
 </script>
 
 <style scoped>
+.schedule-tools{display:flex;justify-content:flex-end;gap:10px;padding:10px 16px 0}.schedule-tools a{font-size:12px;text-decoration:none;color:#409eff;background:#eef6ff;border-radius:8px;padding:9px 12px}
 /* 1. 基础容器与优化 */
 .origin-schedule {
 position: fixed; /* 使用 fixed 代替 relative，彻底锁定在视口 */
@@ -898,6 +918,17 @@ scroll-snap-align: start;
 
 /* 9. 悬浮按钮 */
 /* 浮动按钮组容器 */
+.pin-widget-button {
+  display: block;
+  margin: 8px auto;
+  padding: 8px 16px;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
 .floating-action-group {
   position: fixed; /* 核心：固定定位 */
   right: 24px;     /* 距离右侧距离 */
@@ -999,11 +1030,13 @@ scroll-snap-align: start;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(5px);
-  z-index: 2000;
+  z-index: 20000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  height: 100dvh;
   overscroll-behavior: contain; /* 阻止背景页面跟随滑动 */
 }
 .detail-modal-card {
@@ -1012,17 +1045,25 @@ scroll-snap-align: start;
   max-width: 320px;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  /* 允许内部弹出层溢出（避免色盘被裁切） */
-  overflow: visible;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   animation: modalShow 0.2s ease-out;
   user-select: none;
   touch-action: pan-y; /* 仅允许垂直滚动，避免左右滑动 */
 }
-.modal-line { height: 6px; width: 100%; }
+.modal-line { height: 6px; width: 100%; flex-shrink: 0; }
+.modal-toolbar { display:flex; justify-content:flex-end; align-items:center; gap:20px; padding:12px 20px; flex-shrink:0; background:#fff; }
+.modal-dismiss { margin-right:auto; min-width:44px; min-height:44px; border:0; background:transparent; color:#789; font-size:24px; cursor:pointer; }
+.modal-save { min-width:72px; min-height:44px; border:0; border-radius:10px; background:transparent; color:#409eff; font:inherit; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; }
+.modal-save:disabled { opacity:.6; cursor:wait; }
 .modal-main {
   padding: 24px;
   /* 移动端滚动容器，避免键盘遮挡编辑内容 */
-  max-height: 85vh;
+  min-height: 0;
+  flex: 1;
+  padding-top: 8px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -1199,21 +1240,22 @@ scroll-snap-align: start;
 
 /* 弹出层容器 */
 .color-picker-popover {
-  position: absolute;
-  top: 48px;
-  /* 居中显示，避免超出右侧裁切 */
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  z-index: 1000;
+  /* Keep the palette inside the scrollable modal rather than sizing it to the viewport. */
+  position: relative;
+  margin-top: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: white;
   padding: 12px;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
   border: 1px solid #eee;
-  width: min(90vw, 320px); /* 移动端自适应宽度 */
-  max-height: 50vh;        /* 允许色盘垂直滚动 */
+  max-height: 40vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
 }
 
 /* 弹出层小箭头 */
@@ -1231,7 +1273,7 @@ scroll-snap-align: start;
 
 .color-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
   gap: 8px;
 }
 

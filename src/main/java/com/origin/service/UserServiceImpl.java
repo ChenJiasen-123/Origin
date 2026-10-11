@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new IllegalStateException("密码错误");
         }
+        session.setMaxInactiveInterval(-1); // Keep authenticated until explicit logout.
         session.setAttribute("USER_ID", user.getId());
         return UserConverter.convertToUserDTO(user);
     }
